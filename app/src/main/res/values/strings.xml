@@ -1,0 +1,56 @@
+<resources>
+    <string name="app_name">BackHealth</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Protect Your Spine</string>
+    <string name="onboarding_subtitle">Smart micro-breaks and posture resets designed to alleviate and prevent lumbar disc issues.</string>
+    <string name="user_type_disc">I have a lumbar disc issue (L4-L5, L5-S1)</string>
+    <string name="user_type_preventive">I want to prevent back and neck issues</string>
+    <string name="wake_time_label">Wake-up Time</string>
+    <string name="bed_time_label">Bedtime</string>
+    <string name="get_started">Get Started</string>
+    <string name="grant_permissions">Enable Alarm &amp; Notification Permissions</string>
+
+    <!-- Home -->
+    <string name="today_overview">Today\'s Health Routine</string>
+    <string name="next_alarm_title">Next Break In</string>
+    <string name="cycle_status_active">Cycle is running actively</string>
+    <string name="cycle_status_resting">Resting until %1$s</string>
+    <string name="cycle_status_sleeping">Sleeping window active</string>
+    <string name="exercises_completed_label">Exercises</string>
+    <string name="walks_completed_label">Walks</string>
+    <string name="streak_label">Daily Streak</string>
+    <string name="take_rest">Take a Rest</string>
+    <string name="pause_cycle">Pause Cycle</string>
+    <string name="resume_cycle">Resume Cycle</string>
+    <string name="exercise_library">Exercise Library</string>
+    <string name="settings">Settings</string>
+    <string name="view_progress">View History</string>
+
+    <!-- Alarm Activity -->
+    <string name="exercise_alarm_title">Posture Reset Time!</string>
+    <string name="exercise_alarm_subtitle">Do these 2 micro-exercises in rotation for the next 2–3 minutes.</string>
+    <string name="walk_alarm_title">Walk Break Time!</string>
+    <string name="walk_alarm_subtitle">Get up from your chair, stretch your legs, and walk for 3–5 minutes.</string>
+    <string name="start_walking_button">I\'m Walking (5 min)</string>
+    <string name="mark_done_button">Done</string>
+    <string name="snooze_2min_button">Snooze (2 min)</string>
+    <string name="set1_header">Set 1: Lower Body &amp; Core Pump</string>
+    <string name="set2_header">Set 2: Upper Body &amp; Posture Reset</string>
+
+    <!-- Rest Bottom Sheet -->
+    <string name="rest_sheet_title">Take a Mid-Day Rest</string>
+    <string name="rest_sheet_desc">All alarms will be muted during your rest. The 20-min cycle will automatically resume once your rest ends.</string>
+    <string name="rest_20_min">20 min (Power Nap)</string>
+    <string name="rest_30_min">30 min (Relaxation)</string>
+    <string name="rest_40_min">40 min (Mid Rest)</string>
+    <string name="rest_60_min">1 Hour (Deep Rest)</string>
+    <string name="rest_90_min">1.5 Hours (Full Cycle)</string>
+    <string name="wake_up_early">Wake Up Early &amp; Resume</string>
+
+    <!-- Notification Strings -->
+    <string name="channel_alarm_name">BackHealth Reminders</string>
+    <string name="channel_alarm_desc">Full-screen and heads-up posture &amp; walk break alarms</string>
+    <string name="channel_service_name">BackHealth Background Service</string>
+    <string name="channel_service_desc">Keeps your micro-break routine active</string>
+</resources>
