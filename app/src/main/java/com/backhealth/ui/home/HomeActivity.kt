@@ -215,7 +215,7 @@ class HomeActivity : AppCompatActivity() {
                 binding.btnTakeRest.isEnabled = false
             } else if (isPreventive) {
                 binding.tvNextAlarmLabel.text = "NEXT WALK BREAK IN"
-                val typeTitle = "🚶 Walk Break (2–3 min)"
+                val typeTitle = "🚶 Walk Break (5 min)"
                 val typeBadge = if (state.isSnooze) "⏰ Snoozed: $typeTitle" else typeTitle
 
                 binding.tvNextAlarmType.text = typeBadge

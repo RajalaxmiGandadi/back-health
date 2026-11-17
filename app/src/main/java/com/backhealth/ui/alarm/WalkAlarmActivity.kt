@@ -49,21 +49,23 @@ class WalkAlarmActivity : AppCompatActivity() {
             isPreventive = prefs?.userType == UserPrefs.USER_TYPE_PREVENTIVE
 
             if (isPreventive) {
-                // People without back issues: walk for 2-3 mins (3m = 180s)
-                walkDurationSec = 180
+                // People without back issues: 5-minute walk break every 40 mins
+                walkDurationSec = 300
                 binding.tvWalkTitle.text = "🚶 Walk Break"
-                binding.tvWalkSubtitle.text = "Take a 2–3 minute walking break. Get your blood flowing and keep your posture active."
-                binding.tvWalkTimerText.text = "03:00"
-                binding.walkProgressBar.max = 180
-                binding.walkProgressBar.progress = 180
+                binding.tvWalkSubtitle.text = "Take a 5-minute walking break. Get your blood flowing, clear your mind, and keep your posture active."
+                binding.tvWalkTimerText.text = "05:00"
+                binding.walkProgressBar.max = 300
+                binding.walkProgressBar.progress = 300
+                binding.btnFinishWalkEarly.text = "✅ Finished Walk (Next Walk in 40m)"
             } else {
                 // People with lumbar disc issues: 5-min walk decompression
                 walkDurationSec = 300
                 binding.tvWalkTitle.text = "🚶 Big Break"
-                binding.tvWalkSubtitle.text = "Get up from your chair, stretch your legs, and walk for 3–5 minutes. Decompress your lumbar spine."
+                binding.tvWalkSubtitle.text = "Get up from your chair, stretch your legs, and walk for 5 minutes. Decompress your lumbar spine."
                 binding.tvWalkTimerText.text = "05:00"
                 binding.walkProgressBar.max = 300
                 binding.walkProgressBar.progress = 300
+                binding.btnFinishWalkEarly.text = "✅ Finished Walk (Next Posture Break)"
             }
         }
     }
@@ -169,7 +171,7 @@ class WalkAlarmActivity : AppCompatActivity() {
         countDownTimer?.cancel()
         val db = (application as BackHealthApp).database
         val progressRepo = ProgressRepository(db.exerciseLogDao(), db.walkLogDao())
-        val minutesToLog = if (isPreventive) 3 else 5
+        val minutesToLog = 5
 
         lifecycleScope.launch {
             progressRepo.recordWalkCompleted(minutesToLog)

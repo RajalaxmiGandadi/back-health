@@ -157,8 +157,8 @@ class AlarmReceiver : BroadcastReceiver() {
         val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-        val title = if (isPreventive) "🚶 Time for a 2–3 Minute Walk" else "🚶 Big Break: 3–5 Minute Walk"
-        val content = if (isPreventive) "Keep your posture & circulation active with a quick walk." else "Decompress your lumbar spine with a quick walking break."
+        val title = if (isPreventive) "🚶 Time for a 5-Minute Walk" else "🚶 Big Break: 5-Minute Walk"
+        val content = if (isPreventive) "Take a 5-minute walking break to stay active." else "Decompress your lumbar spine with a 5-minute walking break."
 
         val notification = NotificationCompat.Builder(context, BackHealthApp.CHANNEL_ALARMS_ID)
             .setSmallIcon(R.drawable.ic_walk)

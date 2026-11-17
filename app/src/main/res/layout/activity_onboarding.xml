@@ -61,7 +61,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="12dp"
-                android:text="I don't have back issues (Preventive)\n→ Walk for 2–3 mins after every 40 mins (no exercise alarms)"
+                android:text="I don't have back issues (Preventive)\n→ Walk for 5 mins after every 40 mins (no exercise alarms)"
                 android:textColor="@color/text_primary"
                 android:textSize="14sp" />
         </RadioGroup>

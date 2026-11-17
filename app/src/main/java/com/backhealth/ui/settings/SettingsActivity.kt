@@ -85,7 +85,7 @@ class SettingsActivity : AppCompatActivity() {
                 }
                 val walkDiffMin = maxOf(0L, (walkEpoch - now) / 60000)
                 binding.tvNextBigBreak.text = "next walk break: ${sdf.format(Date(walkEpoch))} (in ${walkDiffMin}m)"
-                binding.tvCycleDescription.text = "💡 Preventive Mode: Walk for 2–3 mins after every 40 mins.\nNo 20-min exercise alarm required."
+                binding.tvCycleDescription.text = "💡 Preventive Mode: Walk for 5 mins after every 40 mins.\nNo 20-min exercise alarm required."
             } else {
                 // Disc Patient: Alternating 20m cycle
                 binding.tvNextSmallBreak.visibility = View.VISIBLE
@@ -127,7 +127,7 @@ class SettingsActivity : AppCompatActivity() {
                     updateBreakTimesUI()
 
                     val toastMsg = if (newUserType == UserPrefs.USER_TYPE_PREVENTIVE) {
-                        "Switched to Preventive: Walk for 2-3m every 40m"
+                        "Switched to Preventive: Walk for 5m every 40m"
                     } else {
                         "Switched to Disc Recovery: Alternating 20m cycle"
                     }
