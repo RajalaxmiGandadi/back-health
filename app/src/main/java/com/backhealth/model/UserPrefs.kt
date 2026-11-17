@@ -7,14 +7,19 @@ import androidx.room.PrimaryKey
 data class UserPrefs(
     @PrimaryKey
     val id: Int = 1,
-    val userType: String = "DISC_PATIENT", // "DISC_PATIENT" or "PREVENTIVE"
+    val userType: String = USER_TYPE_DISC_PATIENT, // "DISC_PATIENT" or "PREVENTIVE"
     val wakeTime: String = "07:00", // HH:mm
     val bedTime: String = "22:00", // HH:mm
     val soundEnabled: Boolean = true,
     val vibrationEnabled: Boolean = true,
     val isOnboardingComplete: Boolean = false,
     val isCyclePaused: Boolean = false
-)
+) {
+    companion object {
+        const val USER_TYPE_DISC_PATIENT = "DISC_PATIENT"
+        const val USER_TYPE_PREVENTIVE = "PREVENTIVE"
+    }
+}
 
 @Entity(tableName = "exercise_exclusion")
 data class ExerciseExclusion(

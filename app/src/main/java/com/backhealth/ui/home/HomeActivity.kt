@@ -34,6 +34,8 @@ class HomeActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityHomeBinding
     private lateinit var viewModel: HomeViewModel
+    private var isPreventive: Boolean = false
+    private var currentPrefs: com.backhealth.model.UserPrefs? = null
 
     private val notificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -120,6 +122,22 @@ class HomeActivity : AppCompatActivity() {
                 launch {
                     viewModel.countdownText.collectLatest { timeText ->
                         binding.tvCountdown.text = timeText
+                        val state = viewModel.cycleState.value
+                        if (state.nextAlarmEpochMillis > 0L) {
+                            val remainingSec = (maxOf(0L, state.nextAlarmEpochMillis - System.currentTimeMillis()) / 1000).toInt()
+                            val totalSec = if (isPreventive) {
+                                AlarmCycleService.INTERVAL_PREVENTIVE_WALK_MINUTES * 60
+                            } else if (state.nextAlarmType == AlarmCycleService.ALARM_TYPE_EXERCISE) {
+                                AlarmCycleService.INTERVAL_EXERCISE_MINUTES * 60
+                            } else {
+                                AlarmCycleService.INTERVAL_WALK_MINUTES * 60
+                            }
+                            binding.circularTimerProgress.max = maxOf(1, totalSec)
+                            binding.circularTimerProgress.setProgressCompat(minOf(totalSec, remainingSec), true)
+                        } else if (state.isResting && state.restEndEpochMillis > 0L) {
+                            val remainingSec = (maxOf(0L, state.restEndEpochMillis - System.currentTimeMillis()) / 1000).toInt()
+                            binding.circularTimerProgress.setProgressCompat(remainingSec, true)
+                        }
                     }
                 }
 
@@ -149,12 +167,16 @@ class HomeActivity : AppCompatActivity() {
 
                 launch {
                     viewModel.userPrefs.collectLatest { prefs ->
-                        val focusLabel = if (prefs?.userType == "DISC_PATIENT") {
-                            "Focus: Lumbar Disc Recovery (L4-L5/L5-S1)"
+                        currentPrefs = prefs
+                        isPreventive = prefs?.userType == com.backhealth.model.UserPrefs.USER_TYPE_PREVENTIVE
+                        val focusLabel = if (isPreventive) {
+                            "Focus: Preventive Care (Walk Every 40m)"
                         } else {
-                            "Focus: Preventive Lumbar Care"
+                            "Focus: Lumbar Disc Recovery (L4-L5/L5-S1)"
                         }
                         binding.tvUserTypeBadge.text = focusLabel
+                        binding.cardSmallBreaksDone.visibility = if (isPreventive) View.GONE else View.VISIBLE
+                        updateCycleUI(viewModel.cycleState.value)
                     }
                 }
             }
@@ -177,16 +199,48 @@ class HomeActivity : AppCompatActivity() {
             binding.btnPauseResume.text = "⏸ Pause Day"
             binding.btnTakeRest.isEnabled = true
         } else {
-            binding.tvNextAlarmLabel.text = "NEXT BREAK IN"
-            val isExercise = state.nextAlarmType == AlarmCycleService.ALARM_TYPE_EXERCISE
-            val typeTitle = if (isExercise) "🧘 Posture Reset (20m)" else "🚶 Walk Break (40m)"
-            val typeBadge = if (state.isSnooze) "⏰ Snoozed: $typeTitle" else typeTitle
+            val wakeTime = currentPrefs?.wakeTime ?: "07:00"
+            val bedTime = currentPrefs?.bedTime ?: "22:00"
+            val isAwake = com.backhealth.alarm.SleepWindowChecker.isAwakeTime(wakeTime, bedTime)
 
-            binding.tvNextAlarmType.text = typeBadge
-            binding.tvCycleState.text = if (state.isSnooze) "Re-alerting in 2m" else "Cycle Active"
+            if (!isAwake) {
+                binding.tvNextAlarmLabel.text = "SLEEP WINDOW ACTIVE"
+                binding.tvNextAlarmType.text = "🌙 Sleeping (Wake: $wakeTime)"
+                binding.tvCycleState.text = "Alarms muted until morning"
+                binding.circularTimerProgress.setIndicatorColor(ContextCompat.getColor(this, R.color.card_border))
+                binding.btnTakeRest.isEnabled = false
+            } else if (isPreventive) {
+                binding.tvNextAlarmLabel.text = "NEXT WALK BREAK IN"
+                val typeTitle = "🚶 Walk Break (2–3 min)"
+                val typeBadge = if (state.isSnooze) "⏰ Snoozed: $typeTitle" else typeTitle
+
+                binding.tvNextAlarmType.text = typeBadge
+                binding.tvCycleState.text = if (state.isSnooze) "Re-alerting in 2m" else "Cycle Active (Every 40m)"
+                binding.circularTimerProgress.setIndicatorColor(ContextCompat.getColor(this, R.color.neon_cyan))
+                binding.tvNextAlarmType.backgroundTintList = ContextCompat.getColorStateList(this, R.color.blue_light)
+                binding.tvNextAlarmType.setTextColor(ContextCompat.getColor(this, R.color.neon_cyan))
+                binding.btnTakeRest.isEnabled = true
+            } else {
+                binding.tvNextAlarmLabel.text = "NEXT BREAK IN"
+                val isExercise = state.nextAlarmType == AlarmCycleService.ALARM_TYPE_EXERCISE
+                val typeTitle = if (isExercise) "🧘 Small Break (Posture)" else "🚶 Big Break (Walking)"
+                val typeBadge = if (state.isSnooze) "⏰ Snoozed: $typeTitle" else typeTitle
+
+                binding.tvNextAlarmType.text = typeBadge
+                binding.tvCycleState.text = if (state.isSnooze) "Re-alerting in 2m" else "Cycle Active"
+                if (isExercise) {
+                    binding.circularTimerProgress.setIndicatorColor(ContextCompat.getColor(this, R.color.neon_mint))
+                    binding.tvNextAlarmType.backgroundTintList = ContextCompat.getColorStateList(this, R.color.teal_light)
+                    binding.tvNextAlarmType.setTextColor(ContextCompat.getColor(this, R.color.neon_mint))
+                } else {
+                    binding.circularTimerProgress.setIndicatorColor(ContextCompat.getColor(this, R.color.neon_cyan))
+                    binding.tvNextAlarmType.backgroundTintList = ContextCompat.getColorStateList(this, R.color.blue_light)
+                    binding.tvNextAlarmType.setTextColor(ContextCompat.getColor(this, R.color.neon_cyan))
+                }
+                binding.btnTakeRest.isEnabled = true
+            }
             binding.btnTakeRest.text = "😴 Take a Mid-Day Rest"
             binding.btnPauseResume.text = "⏸ Pause Day"
-            binding.btnTakeRest.isEnabled = true
         }
     }
 

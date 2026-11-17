@@ -78,9 +78,25 @@
             android:backgroundTint="@color/amber_light"
             android:padding="8dp"
             android:text="⚠️ Warning cue"
-            android:textColor="#B45309"
+            android:textColor="@color/amber_accent"
             android:textSize="12sp"
             android:textStyle="bold" />
+
+        <!-- Video demo button commented out / hidden for Phase 1 -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnWatch3D"
+            style="@style/Widget.Material3.Button.TonalButton"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_marginTop="10dp"
+            android:text="🎬 Watch Form Demo"
+            android:textAllCaps="false"
+            android:textColor="@color/neon_mint"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:backgroundTint="@color/teal_light"
+            app:cornerRadius="10dp" />
 
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -7,9 +7,9 @@
 
 ## 🌟 Features (Phase 1)
 
-1. **Intelligent Repeating Alarm Cycle**:
-   - **20-Minute Alarm**: Triggers a 2–3 minute micro-exercise routine (1 random exercise from Set 1 + 1 from Set 2). Once marked Done, starts the 40-minute walk countdown.
-   - **40-Minute Alarm**: Triggers a 3–5 minute walking break. Tapping *"I'm Walking"* runs a 5-minute countdown. When finished, starts the 20-minute exercise countdown.
+1. **Intelligent Repeating Alarm Cycle (Every 20 Minutes)**:
+   - **Odd 20-min intervals (20m, 60m, 100m...)**: Triggers a 2–3 minute micro-exercise routine (1 random exercise from Set 1 + 1 from Set 2). Once marked Done, starts the 20-minute countdown for the upcoming walk break.
+   - **Even 20-min intervals (40m, 80m, 120m...)**: Triggers a 3–5 minute walking break. Tapping *"I'm Walking"* runs a 5-minute countdown. When finished, starts the 20-minute countdown for the next posture routine.
 2. **Lumbar-Specific Exercise Sets**:
    - **Set 1: Lower Body & Core Pump (7 exercises)**:
      - Slow Standing March (30s)

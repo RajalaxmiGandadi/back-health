@@ -2,15 +2,20 @@ package com.backhealth.ui.settings
 
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.backhealth.BackHealthApp
+import com.backhealth.alarm.AlarmCycleService
 import com.backhealth.databinding.ActivitySettingsBinding
+import com.backhealth.model.UserPrefs
 import com.backhealth.repository.ExerciseRepository
 import com.backhealth.repository.UserPrefsRepository
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -36,14 +41,101 @@ class SettingsActivity : AppCompatActivity() {
     private fun loadSettings() {
         lifecycleScope.launch {
             val prefs = userPrefsRepo.getPrefs()
+            if (prefs.userType == UserPrefs.USER_TYPE_PREVENTIVE) {
+                binding.rbSettingPreventive.isChecked = true
+            } else {
+                binding.rbSettingDiscPatient.isChecked = true
+            }
+
             binding.btnSettingWakeTime.text = "Wake: ${prefs.wakeTime}"
             binding.btnSettingBedTime.text = "Bed: ${prefs.bedTime}"
             binding.switchSound.isChecked = prefs.soundEnabled
             binding.switchVibration.isChecked = prefs.vibrationEnabled
+            updateBreakTimesUI()
+        }
+    }
+
+    private fun updateBreakTimesUI() {
+        lifecycleScope.launch {
+            val prefs = userPrefsRepo.getPrefs()
+            val isPreventive = prefs.userType == UserPrefs.USER_TYPE_PREVENTIVE
+            val state = AlarmCycleService.cycleState.value
+            val sdf = SimpleDateFormat("hh:mm a", Locale.getDefault())
+            val now = System.currentTimeMillis()
+
+            if (state.isPaused) {
+                if (isPreventive) {
+                    binding.tvNextSmallBreak.visibility = View.GONE
+                    binding.tvNextBigBreak.text = "next walk break: Paused"
+                } else {
+                    binding.tvNextSmallBreak.visibility = View.VISIBLE
+                    binding.tvNextSmallBreak.text = "next small break: Paused"
+                    binding.tvNextBigBreak.text = "next big break: Paused"
+                }
+                return@launch
+            }
+
+            if (isPreventive) {
+                // Preventive Mode: No small break! Walk every 40 mins
+                binding.tvNextSmallBreak.visibility = View.GONE
+                val walkEpoch = if (state.nextAlarmEpochMillis > 0L) {
+                    state.nextAlarmEpochMillis
+                } else {
+                    now + (AlarmCycleService.INTERVAL_PREVENTIVE_WALK_MINUTES * 60 * 1000L)
+                }
+                val walkDiffMin = maxOf(0L, (walkEpoch - now) / 60000)
+                binding.tvNextBigBreak.text = "next walk break: ${sdf.format(Date(walkEpoch))} (in ${walkDiffMin}m)"
+                binding.tvCycleDescription.text = "💡 Preventive Mode: Walk for 2–3 mins after every 40 mins.\nNo 20-min exercise alarm required."
+            } else {
+                // Disc Patient: Alternating 20m cycle
+                binding.tvNextSmallBreak.visibility = View.VISIBLE
+                val isSmallNext = state.nextAlarmType == AlarmCycleService.ALARM_TYPE_EXERCISE
+                val smallEpoch: Long
+                val bigEpoch: Long
+
+                if (isSmallNext) {
+                    smallEpoch = if (state.nextAlarmEpochMillis > 0L) state.nextAlarmEpochMillis else now + (AlarmCycleService.INTERVAL_EXERCISE_MINUTES * 60 * 1000L)
+                    bigEpoch = smallEpoch + (AlarmCycleService.INTERVAL_WALK_MINUTES * 60 * 1000L)
+                } else {
+                    bigEpoch = if (state.nextAlarmEpochMillis > 0L) state.nextAlarmEpochMillis else now + (AlarmCycleService.INTERVAL_WALK_MINUTES * 60 * 1000L)
+                    smallEpoch = bigEpoch + (AlarmCycleService.INTERVAL_EXERCISE_MINUTES * 60 * 1000L)
+                }
+
+                val smallDiffMin = maxOf(0L, (smallEpoch - now) / 60000)
+                val bigDiffMin = maxOf(0L, (bigEpoch - now) / 60000)
+
+                binding.tvNextSmallBreak.text = "next small break: ${sdf.format(Date(smallEpoch))} (in ${smallDiffMin}m)"
+                binding.tvNextBigBreak.text = "next big break: ${sdf.format(Date(bigEpoch))} (in ${bigDiffMin}m)"
+                binding.tvCycleDescription.text = "💡 All exercises are for small break.\nWalking is for big break."
+            }
         }
     }
 
     private fun setupListeners() {
+        binding.rgSettingUserType.setOnCheckedChangeListener { _, checkedId ->
+            val newUserType = if (checkedId == binding.rbSettingPreventive.id) {
+                UserPrefs.USER_TYPE_PREVENTIVE
+            } else {
+                UserPrefs.USER_TYPE_DISC_PATIENT
+            }
+
+            lifecycleScope.launch {
+                val currentPrefs = userPrefsRepo.getPrefs()
+                if (currentPrefs.userType != newUserType) {
+                    userPrefsRepo.savePrefs(currentPrefs.copy(userType = newUserType))
+                    AlarmCycleService.resetUserCycle(this@SettingsActivity)
+                    updateBreakTimesUI()
+
+                    val toastMsg = if (newUserType == UserPrefs.USER_TYPE_PREVENTIVE) {
+                        "Switched to Preventive: Walk for 2-3m every 40m"
+                    } else {
+                        "Switched to Disc Recovery: Alternating 20m cycle"
+                    }
+                    Toast.makeText(this@SettingsActivity, toastMsg, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
         binding.btnSettingWakeTime.setOnClickListener {
             lifecycleScope.launch {
                 val current = userPrefsRepo.getPrefs().wakeTime.split(":")

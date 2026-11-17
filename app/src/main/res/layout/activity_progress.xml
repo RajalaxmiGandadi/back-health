@@ -12,6 +12,7 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@color/surface_card"
         app:navigationIcon="?attr/homeAsUpIndicator"
+        app:navigationIconTint="@color/text_primary"
         app:title="History &amp; Progress"
         app:titleTextColor="@color/text_primary" />
 

@@ -10,6 +10,7 @@ import androidx.core.app.NotificationCompat
 import com.backhealth.BackHealthApp
 import com.backhealth.R
 import com.backhealth.db.AppDatabase
+import com.backhealth.model.UserPrefs
 import com.backhealth.ui.alarm.ExerciseAlarmActivity
 import com.backhealth.ui.alarm.WalkAlarmActivity
 import com.backhealth.utils.ExercisePicker
@@ -23,7 +24,6 @@ class AlarmReceiver : BroadcastReceiver() {
         val action = intent.action ?: return
 
         if (action == AlarmScheduler.ACTION_REST_END) {
-            // Wake up cycle service, notify rest complete & resume 20m countdown
             val serviceIntent = Intent(context, AlarmCycleService::class.java).apply {
                 this.action = AlarmCycleService.ACTION_REST_EXPIRED
             }
@@ -46,27 +46,40 @@ class AlarmReceiver : BroadcastReceiver() {
                         return@launch
                     }
 
-                    // Check sleep window
+                    val isPreventive = prefs?.userType == UserPrefs.USER_TYPE_PREVENTIVE
+
+                    // Check sleep window (Strictly respected at all times)
                     val wakeTime = prefs?.wakeTime ?: "07:00"
                     val bedTime = prefs?.bedTime ?: "22:00"
                     val isAwake = SleepWindowChecker.isAwakeTime(wakeTime, bedTime)
 
                     if (!isAwake) {
-                        // Reschedule for next morning
+                        val initialType = if (isPreventive) AlarmCycleService.ALARM_TYPE_WALK else AlarmCycleService.ALARM_TYPE_EXERCISE
                         val nextWakeEpoch = SleepWindowChecker.getNextWakeUpEpochMillis(wakeTime)
-                        AlarmScheduler.scheduleAlarm(context, nextWakeEpoch, "EXERCISE")
+                        AlarmScheduler.scheduleAlarm(context, nextWakeEpoch, initialType)
+
+                        val prefsEdit = context.getSharedPreferences(AlarmCycleService.PREFS_CYCLE, Context.MODE_PRIVATE)
+                        prefsEdit.edit()
+                            .putLong(AlarmCycleService.KEY_NEXT_ALARM_EPOCH, nextWakeEpoch)
+                            .putString(AlarmCycleService.KEY_NEXT_ALARM_TYPE, initialType)
+                            .putBoolean(AlarmCycleService.KEY_IS_SNOOZE, false)
+                            .apply()
+
                         pendingResult.finish()
                         return@launch
                     }
+
+                    // Notify AlarmCycleService that the alarm is firing (sets up auto-snooze until completed)
+                    AlarmCycleService.alarmFired(context, alarmType)
 
                     // Trigger alarm based on type
                     when (alarmType) {
                         "EXERCISE", "SNOOZE_EXERCISE" -> {
                             val (ex1, ex2) = ExercisePicker.pickExercisesForMicroBreak(db.exerciseDao())
-                            triggerExerciseAlarm(context, ex1?.id, ex1?.name, ex2?.id, ex2?.name)
+                            triggerExerciseAlarm(context, ex1.id, ex1.name, ex2.id, ex2.name)
                         }
                         "WALK", "SNOOZE_WALK" -> {
-                            triggerWalkAlarm(context)
+                            triggerWalkAlarm(context, isPreventive)
                         }
                     }
                 } catch (e: Exception) {
@@ -93,9 +106,10 @@ class AlarmReceiver : BroadcastReceiver() {
             putExtra(ExerciseAlarmActivity.EXTRA_EX2_NAME, ex2Name)
         }
 
+        val uniqueCode = (System.currentTimeMillis() % 100000).toInt()
         val fullScreenPendingIntent = PendingIntent.getActivity(
             context,
-            2001,
+            uniqueCode,
             fullScreenIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -119,7 +133,7 @@ class AlarmReceiver : BroadcastReceiver() {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID_EXERCISE, notification)
 
-        // Attempt direct launch if allowed
+        // Attempt direct launch if permitted
         try {
             context.startActivity(fullScreenIntent)
         } catch (e: Exception) {
@@ -127,14 +141,15 @@ class AlarmReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun triggerWalkAlarm(context: Context) {
+    private fun triggerWalkAlarm(context: Context, isPreventive: Boolean) {
         val fullScreenIntent = Intent(context, WalkAlarmActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         }
 
+        val uniqueCode = (System.currentTimeMillis() % 100000).toInt() + 1
         val fullScreenPendingIntent = PendingIntent.getActivity(
             context,
-            2002,
+            uniqueCode,
             fullScreenIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
@@ -142,10 +157,13 @@ class AlarmReceiver : BroadcastReceiver() {
         val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
+        val title = if (isPreventive) "🚶 Time for a 2–3 Minute Walk" else "🚶 Big Break: 3–5 Minute Walk"
+        val content = if (isPreventive) "Keep your posture & circulation active with a quick walk." else "Decompress your lumbar spine with a quick walking break."
+
         val notification = NotificationCompat.Builder(context, BackHealthApp.CHANNEL_ALARMS_ID)
             .setSmallIcon(R.drawable.ic_walk)
-            .setContentTitle("🚶 Time for a 5-Minute Walk")
-            .setContentText("Decompress your lumbar spine with a quick walking break.")
+            .setContentTitle(title)
+            .setContentText(content)
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)

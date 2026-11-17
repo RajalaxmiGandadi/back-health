@@ -3,30 +3,30 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/blue_accent"
+    android:background="@color/bg_obsidian"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="24dp">
+    android:padding="28dp">
 
-    <!-- Walk Icon / Illustration placeholder -->
+    <!-- Walk Icon / Hero -->
     <ImageView
-        android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_marginBottom="16dp"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
+        android:layout_marginBottom="20dp"
         android:background="@drawable/ic_check"
-        android:backgroundTint="#33FFFFFF"
+        android:backgroundTint="@color/card_dark_slate"
         android:contentDescription="Walk icon"
-        android:padding="20dp"
+        android:padding="22dp"
         android:src="@drawable/ic_walk"
-        app:tint="@color/white" />
+        app:tint="@color/neon_cyan" />
 
     <TextView
         android:id="@+id/tvWalkTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="🚶 Time to Walk!"
-        android:textColor="@color/white"
-        android:textSize="28sp"
+        android:text="🚶 Big Break"
+        android:textColor="@color/neon_cyan"
+        android:textSize="30sp"
         android:textStyle="bold" />
 
     <TextView
@@ -35,8 +35,9 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:gravity="center"
+        android:lineSpacingExtra="4dp"
         android:text="Get up from your chair, stretch your legs, and walk for 3–5 minutes. Decompress your lumbar spine."
-        android:textColor="@color/blue_light"
+        android:textColor="@color/text_secondary"
         android:textSize="15sp" />
 
     <!-- Walk Countdown (Shown when walking starts) -->
@@ -44,23 +45,26 @@
         android:id="@+id/cardWalkTimer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
-        android:layout_marginBottom="24dp"
+        android:layout_marginTop="28dp"
+        android:layout_marginBottom="28dp"
         android:visibility="gone"
-        app:cardBackgroundColor="@color/surface_card"
-        app:cardCornerRadius="20dp"
-        app:cardElevation="6dp">
+        app:cardBackgroundColor="@color/card_dark_slate"
+        app:cardCornerRadius="24dp"
+        app:cardElevation="0dp"
+        app:strokeColor="@color/card_border"
+        app:strokeWidth="1dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
             android:orientation="vertical"
-            android:padding="24dp">
+            android:padding="28dp">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:letterSpacing="0.1"
                 android:text="WALKING TIME REMAINING"
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp"
@@ -72,19 +76,19 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:text="05:00"
-                android:textColor="@color/blue_accent"
-                android:textSize="48sp"
+                android:textColor="@color/neon_cyan"
+                android:textSize="52sp"
                 android:textStyle="bold" />
 
             <com.google.android.material.progressindicator.LinearProgressIndicator
                 android:id="@+id/walkProgressBar"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
+                android:layout_marginTop="16dp"
                 android:max="300"
                 android:progress="300"
-                app:indicatorColor="@color/blue_accent"
-                app:trackColor="@color/blue_light"
+                app:indicatorColor="@color/neon_cyan"
+                app:trackColor="@color/card_border"
                 app:trackCornerRadius="4dp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
@@ -103,22 +107,23 @@
             android:layout_height="56dp"
             android:text="🚶 I'm Walking! (Start 5 min)"
             android:textAllCaps="false"
-            android:textColor="@color/blue_accent"
+            android:textColor="@color/bg_obsidian"
             android:textSize="16sp"
-            app:backgroundTint="@color/white"
+            android:textStyle="bold"
+            app:backgroundTint="@color/neon_cyan"
             app:cornerRadius="16dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSnoozeWalk"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="50dp"
             android:layout_marginTop="12dp"
             android:text="😴 Snooze (Remind in 2 min)"
             android:textAllCaps="false"
-            android:textColor="@color/white"
+            android:textColor="@color/text_primary"
             app:cornerRadius="14dp"
-            app:strokeColor="#80FFFFFF" />
+            app:strokeColor="@color/card_border" />
     </LinearLayout>
 
     <!-- Finish Early Button (When timer is running) -->
@@ -126,12 +131,13 @@
         android:id="@+id/btnFinishWalkEarly"
         android:layout_width="match_parent"
         android:layout_height="56dp"
-        android:text="✅ Finished Walk (Next 20m Cycle)"
+        android:text="✅ Finished Walk (Next Posture Break)"
         android:textAllCaps="false"
-        android:textColor="@color/white"
+        android:textColor="@color/bg_obsidian"
         android:textSize="16sp"
+        android:textStyle="bold"
         android:visibility="gone"
-        app:backgroundTint="@color/green_accent"
+        app:backgroundTint="@color/neon_mint"
         app:cornerRadius="16dp" />
 
 </LinearLayout>

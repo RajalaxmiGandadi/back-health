@@ -10,7 +10,8 @@ import com.backhealth.databinding.ItemExerciseBinding
 import com.backhealth.model.Exercise
 
 class ExerciseAdapter(
-    private val onToggleEnabled: (Exercise, Boolean) -> Unit
+    private val onToggleEnabled: (Exercise, Boolean) -> Unit,
+    private val onWatch3D: ((Exercise) -> Unit)? = null
 ) : ListAdapter<Exercise, ExerciseAdapter.ViewHolder>(DiffCallback) {
 
     class ViewHolder(val binding: ItemExerciseBinding) : RecyclerView.ViewHolder(binding.root)
@@ -39,6 +40,10 @@ class ExerciseAdapter(
             switchEnabled.isChecked = exercise.enabled
             switchEnabled.setOnCheckedChangeListener { _, isChecked ->
                 onToggleEnabled(exercise, isChecked)
+            }
+
+            btnWatch3D.setOnClickListener {
+                onWatch3D?.invoke(exercise)
             }
         }
     }

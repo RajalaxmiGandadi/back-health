@@ -4,16 +4,13 @@
         <item name="colorPrimary">@color/teal_primary</item>
         <item name="colorPrimaryDark">@color/teal_primary_dark</item>
         <item name="colorSecondary">@color/amber_accent</item>
-        <item name="android:statusBarColor">@color/background_light</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowBackground">@color/background_light</item>
+        <item name="android:statusBarColor">@color/bg_obsidian</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/bg_obsidian</item>
     </style>
 
     <!-- Fullscreen Alarm Theme for lockscreen wake & alert -->
     <style name="Theme.BackHealth.Alarm" parent="Theme.Material3.DayNight.NoActionBar">
-        <item name="android:windowShowWhenLocked">true</item>
-        <item name="android:windowTurnScreenOn">true</item>
-        <item name="android:windowKeepScreenOn">true</item>
         <item name="android:statusBarColor">@color/teal_primary_dark</item>
         <item name="android:navigationBarColor">@color/teal_primary_dark</item>
     </style>

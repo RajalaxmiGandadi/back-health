@@ -15,6 +15,8 @@ data class Exercise(
     val coachingCue: String,
     val warning: String = "",
     val gifUrl: String = "",
+    val videoUrl: String = "",
+    val localVideoRes: String = "",
     val enabled: Boolean = true,
     val sortOrder: Int = 0
 )

@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/teal_primary_dark"
+    android:background="@color/bg_obsidian"
     android:orientation="vertical"
     android:padding="20dp">
 
@@ -19,17 +19,17 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="🧘 Posture Reset Break"
-            android:textColor="@color/white"
-            android:textSize="24sp"
+            android:text="🧘 Small Break"
+            android:textColor="@color/neon_mint"
+            android:textSize="26sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:text="Loop these 2 micro-exercises for ~2–3 minutes"
-            android:textColor="@color/teal_light"
+            android:text="Posture Reset • Loop for ~2–3 minutes"
+            android:textColor="@color/text_secondary"
             android:textSize="14sp" />
 
         <TextView
@@ -39,22 +39,23 @@
             android:layout_marginTop="10dp"
             android:text="02:30"
             android:textColor="@color/amber_accent"
-            android:textSize="36sp"
+            android:textSize="40sp"
             android:textStyle="bold" />
 
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progressBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="8dp"
             android:max="150"
             android:progress="150"
-            app:indicatorColor="@color/amber_accent"
-            app:trackColor="#33FFFFFF"
+            app:indicatorColor="@color/neon_mint"
+            app:trackColor="@color/card_border"
             app:trackCornerRadius="4dp" />
     </LinearLayout>
 
     <ScrollView
+        android:id="@+id/scrollViewExercises"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -65,27 +66,122 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- 3D Biomechanical Video Player Container (Hidden / Commented out for Phase 1) -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardVideoContainer"
+                android:layout_width="match_parent"
+                android:layout_height="230dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/card_dark_slate"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/card_border"
+                app:strokeWidth="1dp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <!-- Video View for 3D Biomechanical Loops -->
+                    <VideoView
+                        android:id="@+id/videoView3D"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_centerInParent="true" />
+
+                    <!-- Fallback / Animated Placeholder -->
+                    <ImageView
+                        android:id="@+id/ivVideoPlaceholder"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:padding="60dp"
+                        android:scaleType="centerInside"
+                        android:src="@drawable/ic_exercise"
+                        app:tint="@color/neon_mint" />
+
+                    <!-- Exercise Form Badge Overlay -->
+                    <TextView
+                        android:id="@+id/tv3DBadge"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentTop="true"
+                        android:layout_margin="14dp"
+                        android:background="@drawable/ic_check"
+                        android:backgroundTint="#DD0B0F19"
+                        android:paddingHorizontal="10dp"
+                        android:paddingVertical="5dp"
+                        android:text="🎬 EXERCISE FORM DEMO"
+                        android:textColor="@color/neon_mint"
+                        android:textSize="11sp"
+                        android:textStyle="bold" />
+
+                    <!-- Bottom Exercise Switcher Tabs -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentBottom="true"
+                        android:background="#EE0B0F19"
+                        android:orientation="horizontal"
+                        android:padding="6dp">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnTabEx1"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_weight="1"
+                            android:text="1. Leg &amp; Core Pump"
+                            android:textAllCaps="false"
+                            android:textColor="@color/bg_obsidian"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            app:backgroundTint="@color/neon_mint"
+                            app:cornerRadius="10dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnTabEx2"
+                            style="@style/Widget.Material3.Button.OutlinedButton"
+                            android:layout_width="0dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="4dp"
+                            android:layout_weight="1"
+                            android:text="2. Posture Reset"
+                            android:textAllCaps="false"
+                            android:textColor="@color/text_primary"
+                            android:textSize="12sp"
+                            app:cornerRadius="10dp"
+                            app:strokeColor="@color/card_border" />
+                    </LinearLayout>
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <!-- Card 1: Lower Body & Core Pump -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:layout_marginBottom="12dp"
-                app:cardBackgroundColor="@color/surface_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp">
+                app:cardBackgroundColor="@color/card_dark_slate"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/card_border"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="18dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="SET 1: LOWER BODY &amp; CORE PUMP"
-                        android:textColor="@color/teal_primary"
+                        android:textColor="@color/neon_mint"
                         android:textSize="11sp"
                         android:textStyle="bold" />
 
@@ -93,8 +189,8 @@
                         android:id="@+id/tvEx1Name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Slow Standing March"
+                        android:layout_marginTop="4dp"
+                        android:text="Loading..."
                         android:textColor="@color/text_primary"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -114,6 +210,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:lineSpacingExtra="3dp"
                         android:text="Lift knees just high enough to engage hips. Acts as a mechanical pump to clear fluid from L4-L5 joint."
                         android:textColor="@color/text_primary"
                         android:textSize="13sp" />
@@ -122,12 +219,12 @@
                         android:id="@+id/tvEx1Warning"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="8dp"
                         android:background="@drawable/ic_check"
                         android:backgroundTint="@color/amber_light"
                         android:padding="8dp"
                         android:text="⚠️ Do not let lower back round."
-                        android:textColor="#B45309"
+                        android:textColor="@color/amber_accent"
                         android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -138,21 +235,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/surface_card"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="4dp">
+                app:cardBackgroundColor="@color/card_dark_slate"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/card_border"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="16dp">
+                    android:padding="18dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="SET 2: UPPER BODY &amp; POSTURE RESET"
-                        android:textColor="@color/teal_primary"
+                        android:textColor="@color/neon_cyan"
                         android:textSize="11sp"
                         android:textStyle="bold" />
 
@@ -160,8 +259,8 @@
                         android:id="@+id/tvEx2Name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="Standing Chin Tucks"
+                        android:layout_marginTop="4dp"
+                        android:text="Loading..."
                         android:textColor="@color/text_primary"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -181,6 +280,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
+                        android:lineSpacingExtra="3dp"
                         android:text="Stand tall. Pull chin straight back horizontally (like making a double chin) to align cervical spine."
                         android:textColor="@color/text_primary"
                         android:textSize="13sp" />
@@ -189,12 +289,12 @@
                         android:id="@+id/tvEx2Warning"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
+                        android:layout_marginTop="8dp"
                         android:background="@drawable/ic_check"
                         android:backgroundTint="@color/amber_light"
                         android:padding="8dp"
                         android:text="⚠️ Pull straight back horizontally, do not tilt down."
-                        android:textColor="#B45309"
+                        android:textColor="@color/amber_accent"
                         android:textSize="12sp"
                         android:textStyle="bold" />
                 </LinearLayout>
@@ -214,23 +314,25 @@
             android:id="@+id/btnDone"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:text="✅ Done (Starts Next 40m Walk Timer)"
+            android:text="✅ Done (Starts Next Walk Break)"
             android:textAllCaps="false"
+            android:textColor="@color/bg_obsidian"
             android:textSize="16sp"
-            app:backgroundTint="@color/teal_accent"
+            android:textStyle="bold"
+            app:backgroundTint="@color/neon_mint"
             app:cornerRadius="16dp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnSnooze"
             style="@style/Widget.Material3.Button.OutlinedButton"
             android:layout_width="match_parent"
-            android:layout_height="48dp"
+            android:layout_height="50dp"
             android:layout_marginTop="8dp"
             android:text="😴 Snooze (Remind in 2 min)"
             android:textAllCaps="false"
-            android:textColor="@color/white"
+            android:textColor="@color/text_primary"
             app:cornerRadius="14dp"
-            app:strokeColor="#80FFFFFF" />
+            app:strokeColor="@color/card_border" />
     </LinearLayout>
 
 </LinearLayout>

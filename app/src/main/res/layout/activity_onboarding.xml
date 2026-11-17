@@ -52,18 +52,18 @@
                 android:layout_height="wrap_content"
                 android:checked="true"
                 android:padding="12dp"
-                android:text="I have a lumbar disc issue (L4-L5 / L5-S1)"
+                android:text="I have a lumbar disc issue (L4-L5 / L5-S1)\n→ Small Break exercises + Big Break walking alternating every 20m"
                 android:textColor="@color/text_primary"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
 
             <com.google.android.material.radiobutton.MaterialRadioButton
                 android:id="@+id/rbPreventive"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:padding="12dp"
-                android:text="I want to prevent back &amp; posture problems"
+                android:text="I don't have back issues (Preventive)\n→ Walk for 2–3 mins after every 40 mins (no exercise alarms)"
                 android:textColor="@color/text_primary"
-                android:textSize="15sp" />
+                android:textSize="14sp" />
         </RadioGroup>
 
         <!-- Sleep Window Selection -->
@@ -150,7 +150,8 @@
             android:id="@+id/btnGetStarted"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:layout_marginTop="auto"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="16dp"
             android:text="Start My Healthy Routine 🚀"
             android:textAllCaps="false"
             android:textSize="16sp"

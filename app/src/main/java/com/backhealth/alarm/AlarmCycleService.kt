@@ -9,10 +9,14 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import com.backhealth.BackHealthApp
 import com.backhealth.R
+import com.backhealth.model.UserPrefs
 import com.backhealth.ui.home.HomeActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -26,19 +30,15 @@ class AlarmCycleService : Service() {
 
         when (action) {
             ACTION_START_CYCLE -> {
-                if (_cycleState.value.nextAlarmEpochMillis == 0L) {
-                    startNextAlarm(ALARM_TYPE_EXERCISE, INTERVAL_EXERCISE_MINUTES)
-                }
+                restoreOrScheduleCycle()
             }
             ACTION_TASK_COMPLETED -> {
                 val completedType = intent?.getStringExtra(EXTRA_COMPLETED_TYPE) ?: ALARM_TYPE_EXERCISE
-                if (completedType == ALARM_TYPE_EXERCISE) {
-                    // Next is walk alarm in 40 minutes!
-                    startNextAlarm(ALARM_TYPE_WALK, INTERVAL_WALK_MINUTES)
-                } else {
-                    // Next is exercise alarm in 20 minutes!
-                    startNextAlarm(ALARM_TYPE_EXERCISE, INTERVAL_EXERCISE_MINUTES)
-                }
+                scheduleNextAfterTask(completedType)
+            }
+            ACTION_ALARM_FIRED -> {
+                val firedType = intent?.getStringExtra(EXTRA_COMPLETED_TYPE) ?: _cycleState.value.nextAlarmType
+                handleAlarmFired(firedType)
             }
             ACTION_SNOOZE -> {
                 val currentType = intent?.getStringExtra(EXTRA_COMPLETED_TYPE) ?: _cycleState.value.nextAlarmType
@@ -49,26 +49,194 @@ class AlarmCycleService : Service() {
                 startRestMode(durationMinutes)
             }
             ACTION_REST_EXPIRED, ACTION_CANCEL_REST -> {
-                // Resume standard cycle starting with 20m exercise
                 _cycleState.value = _cycleState.value.copy(isResting = false, restEndEpochMillis = 0L)
-                startNextAlarm(ALARM_TYPE_EXERCISE, INTERVAL_EXERCISE_MINUTES)
+                scheduleInitialAlarm()
             }
             ACTION_PAUSE_CYCLE -> {
                 AlarmScheduler.cancelAlarms(this)
+                val prefs = getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
+                prefs.edit().putBoolean(KEY_IS_PAUSED, true).putLong(KEY_NEXT_ALARM_EPOCH, 0L).apply()
                 _cycleState.value = _cycleState.value.copy(isPaused = true)
                 updateForegroundNotification("Cycle Paused")
             }
             ACTION_RESUME_CYCLE -> {
+                val prefs = getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
+                prefs.edit().putBoolean(KEY_IS_PAUSED, false).apply()
                 _cycleState.value = _cycleState.value.copy(isPaused = false)
-                startNextAlarm(ALARM_TYPE_EXERCISE, INTERVAL_EXERCISE_MINUTES)
+                scheduleInitialAlarm()
+            }
+            ACTION_RESET_USER_CYCLE -> {
+                AlarmScheduler.cancelAlarms(this)
+                val prefs = getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
+                prefs.edit().clear().apply()
+                _cycleState.value = CycleState()
+                scheduleInitialAlarm()
             }
         }
 
         return START_STICKY
     }
 
+    private fun restoreOrScheduleCycle() {
+        val prefs = getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
+        val savedEpoch = prefs.getLong(KEY_NEXT_ALARM_EPOCH, 0L)
+        val savedType = prefs.getString(KEY_NEXT_ALARM_TYPE, null)
+        val isResting = prefs.getBoolean(KEY_IS_RESTING, false)
+        val restEndEpoch = prefs.getLong(KEY_REST_END_EPOCH, 0L)
+        val isPaused = prefs.getBoolean(KEY_IS_PAUSED, false)
+
+        val now = System.currentTimeMillis()
+
+        if (isPaused) {
+            _cycleState.value = CycleState(isPaused = true)
+            updateForegroundNotification("Cycle Paused")
+            return
+        }
+
+        if (isResting && restEndEpoch > now) {
+            _cycleState.value = CycleState(
+                nextAlarmType = savedType ?: ALARM_TYPE_EXERCISE,
+                nextAlarmEpochMillis = 0L,
+                isResting = true,
+                restEndEpochMillis = restEndEpoch,
+                isPaused = false
+            )
+            val timeStr = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(restEndEpoch))
+            updateForegroundNotification("Resting until $timeStr (alarms muted)")
+            return
+        }
+
+        // If an active alarm is already scheduled in the future, retain it without restarting!
+        if (savedEpoch > now && savedType != null) {
+            _cycleState.value = CycleState(
+                nextAlarmType = savedType,
+                nextAlarmEpochMillis = savedEpoch,
+                isResting = false,
+                isSnooze = prefs.getBoolean(KEY_IS_SNOOZE, false),
+                isPaused = false
+            )
+            val delayMin = maxOf(1L, (savedEpoch - now) / 60000)
+            val typeLabel = if (savedType == ALARM_TYPE_EXERCISE) "Posture Reset in $delayMin min" else "Walk Break in $delayMin min"
+            updateForegroundNotification("Next: $typeLabel")
+            return
+        }
+
+        // Otherwise (first launch or previous alarm expired in the past), schedule fresh
+        scheduleInitialAlarm()
+    }
+
+    private fun scheduleInitialAlarm() {
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = (application as BackHealthApp).database
+            val prefs = db.userPrefsDao().getPrefs()
+            val isPreventive = prefs?.userType == UserPrefs.USER_TYPE_PREVENTIVE
+
+            val wakeTime = prefs?.wakeTime ?: "07:00"
+            val bedTime = prefs?.bedTime ?: "22:00"
+            val isAwake = SleepWindowChecker.isAwakeTime(wakeTime, bedTime)
+            val targetType = if (isPreventive) ALARM_TYPE_WALK else ALARM_TYPE_EXERCISE
+
+            if (!isAwake) {
+                val nextWakeEpoch = SleepWindowChecker.getNextWakeUpEpochMillis(wakeTime)
+                scheduleDirectAtEpoch(targetType, nextWakeEpoch)
+            } else {
+                val delay = if (isPreventive) INTERVAL_PREVENTIVE_WALK_MINUTES else INTERVAL_EXERCISE_MINUTES
+                startNextAlarm(targetType, delay)
+            }
+        }
+    }
+
+    private fun scheduleNextAfterTask(completedType: String) {
+        CoroutineScope(Dispatchers.IO).launch {
+            val db = (application as BackHealthApp).database
+            val prefs = db.userPrefsDao().getPrefs()
+            val isPreventive = prefs?.userType == UserPrefs.USER_TYPE_PREVENTIVE
+
+            val wakeTime = prefs?.wakeTime ?: "07:00"
+            val bedTime = prefs?.bedTime ?: "22:00"
+            val isAwake = SleepWindowChecker.isAwakeTime(wakeTime, bedTime)
+
+            val nextType = if (isPreventive) {
+                ALARM_TYPE_WALK
+            } else {
+                if (completedType == ALARM_TYPE_EXERCISE) ALARM_TYPE_WALK else ALARM_TYPE_EXERCISE
+            }
+
+            if (!isAwake) {
+                val nextWakeEpoch = SleepWindowChecker.getNextWakeUpEpochMillis(wakeTime)
+                scheduleDirectAtEpoch(nextType, nextWakeEpoch)
+            } else {
+                val delay = if (isPreventive) {
+                    INTERVAL_PREVENTIVE_WALK_MINUTES
+                } else {
+                    if (completedType == ALARM_TYPE_EXERCISE) INTERVAL_WALK_MINUTES else INTERVAL_EXERCISE_MINUTES
+                }
+                startNextAlarm(nextType, delay)
+            }
+        }
+    }
+
+    private fun scheduleDirectAtEpoch(alarmType: String, triggerEpoch: Long) {
+        val prefs = getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putLong(KEY_NEXT_ALARM_EPOCH, triggerEpoch)
+            .putString(KEY_NEXT_ALARM_TYPE, alarmType)
+            .putBoolean(KEY_IS_RESTING, false)
+            .putLong(KEY_REST_END_EPOCH, 0L)
+            .putBoolean(KEY_IS_SNOOZE, false)
+            .putBoolean(KEY_IS_PAUSED, false)
+            .apply()
+
+        AlarmScheduler.scheduleAlarm(this, triggerEpoch, alarmType)
+
+        _cycleState.value = CycleState(
+            nextAlarmType = alarmType,
+            nextAlarmEpochMillis = triggerEpoch,
+            isResting = false,
+            isSnooze = false,
+            isPaused = false
+        )
+
+        val timeStr = SimpleDateFormat("hh:mm a", Locale.getDefault()).format(Date(triggerEpoch))
+        updateForegroundNotification("Sleeping until $timeStr (alarms muted)")
+    }
+
+    private fun handleAlarmFired(firedType: String) {
+        // Alarm has popped up on screen!
+        // Schedule auto-snooze for INTERVAL_SNOOZE_MINUTES so that if user is away from phone,
+        // it re-alerts every 1-2 minutes until marked completed
+        val triggerEpoch = System.currentTimeMillis() + (INTERVAL_SNOOZE_MINUTES * 60 * 1000L)
+        AlarmScheduler.scheduleAlarm(this, triggerEpoch, firedType)
+
+        val prefs = getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putLong(KEY_NEXT_ALARM_EPOCH, triggerEpoch)
+            .putString(KEY_NEXT_ALARM_TYPE, firedType)
+            .putBoolean(KEY_IS_SNOOZE, true)
+            .apply()
+
+        _cycleState.value = _cycleState.value.copy(
+            nextAlarmType = firedType,
+            nextAlarmEpochMillis = triggerEpoch,
+            isSnooze = true
+        )
+        updateForegroundNotification("Alarm triggered — re-alerting in $INTERVAL_SNOOZE_MINUTES min")
+    }
+
     private fun startNextAlarm(alarmType: String, delayMinutes: Int, isSnooze: Boolean = false) {
         val triggerEpoch = System.currentTimeMillis() + (delayMinutes * 60 * 1000L)
+
+        // Persist to disk so navigating screens or app recreation never resets the countdown!
+        val prefs = getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putLong(KEY_NEXT_ALARM_EPOCH, triggerEpoch)
+            .putString(KEY_NEXT_ALARM_TYPE, alarmType)
+            .putBoolean(KEY_IS_RESTING, false)
+            .putLong(KEY_REST_END_EPOCH, 0L)
+            .putBoolean(KEY_IS_SNOOZE, isSnooze)
+            .putBoolean(KEY_IS_PAUSED, false)
+            .apply()
+
         AlarmScheduler.scheduleAlarm(this, triggerEpoch, alarmType)
 
         _cycleState.value = CycleState(
@@ -89,6 +257,14 @@ class AlarmCycleService : Service() {
         val restEndEpoch = System.currentTimeMillis() + (durationMinutes * 60 * 1000L)
         AlarmScheduler.scheduleRestEnd(this, restEndEpoch)
 
+        val prefs = getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
+        prefs.edit()
+            .putLong(KEY_NEXT_ALARM_EPOCH, 0L)
+            .putBoolean(KEY_IS_RESTING, true)
+            .putLong(KEY_REST_END_EPOCH, restEndEpoch)
+            .putBoolean(KEY_IS_PAUSED, false)
+            .apply()
+
         _cycleState.value = CycleState(
             nextAlarmType = ALARM_TYPE_EXERCISE,
             nextAlarmEpochMillis = 0L,
@@ -107,7 +283,9 @@ class AlarmCycleService : Service() {
     }
 
     private fun createNotification(content: String): Notification {
-        val launchIntent = Intent(this, HomeActivity::class.java)
+        val launchIntent = Intent(this, HomeActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
         val pendingIntent = PendingIntent.getActivity(
             this,
             0,
@@ -137,14 +315,24 @@ class AlarmCycleService : Service() {
     companion object {
         const val NOTIFICATION_ID_SERVICE = 4001
 
+        const val PREFS_CYCLE = "backhealth_cycle_prefs"
+        const val KEY_NEXT_ALARM_EPOCH = "next_alarm_epoch"
+        const val KEY_NEXT_ALARM_TYPE = "next_alarm_type"
+        const val KEY_IS_RESTING = "is_resting"
+        const val KEY_REST_END_EPOCH = "rest_end_epoch"
+        const val KEY_IS_SNOOZE = "is_snooze"
+        const val KEY_IS_PAUSED = "is_paused"
+
         const val ACTION_START_CYCLE = "ACTION_START_CYCLE"
         const val ACTION_TASK_COMPLETED = "ACTION_TASK_COMPLETED"
+        const val ACTION_ALARM_FIRED = "ACTION_ALARM_FIRED"
         const val ACTION_SNOOZE = "ACTION_SNOOZE"
         const val ACTION_START_REST = "ACTION_START_REST"
         const val ACTION_REST_EXPIRED = "ACTION_REST_EXPIRED"
         const val ACTION_CANCEL_REST = "ACTION_CANCEL_REST"
         const val ACTION_PAUSE_CYCLE = "ACTION_PAUSE_CYCLE"
         const val ACTION_RESUME_CYCLE = "ACTION_RESUME_CYCLE"
+        const val ACTION_RESET_USER_CYCLE = "ACTION_RESET_USER_CYCLE"
 
         const val EXTRA_COMPLETED_TYPE = "EXTRA_COMPLETED_TYPE"
         const val EXTRA_REST_MINUTES = "EXTRA_REST_MINUTES"
@@ -152,9 +340,30 @@ class AlarmCycleService : Service() {
         const val ALARM_TYPE_EXERCISE = "EXERCISE"
         const val ALARM_TYPE_WALK = "WALK"
 
-        const val INTERVAL_EXERCISE_MINUTES = 20
-        const val INTERVAL_WALK_MINUTES = 40
-        const val INTERVAL_SNOOZE_MINUTES = 2
+        // Mode switch: Set to true for rapid testing (1m / 2m), false for production (20m / 40m)
+        const val FAST_TESTING_MODE = true
+
+        const val INTERVAL_EXERCISE_PROD_MINUTES = 20
+        const val INTERVAL_WALK_PROD_MINUTES = 20
+        const val INTERVAL_PREVENTIVE_WALK_PROD_MINUTES = 40
+        const val INTERVAL_SNOOZE_PROD_MINUTES = 2
+
+        const val INTERVAL_EXERCISE_TEST_MINUTES = 1
+        const val INTERVAL_WALK_TEST_MINUTES = 1
+        const val INTERVAL_PREVENTIVE_WALK_TEST_MINUTES = 2
+        const val INTERVAL_SNOOZE_TEST_MINUTES = 1
+
+        val INTERVAL_EXERCISE_MINUTES: Int
+            get() = if (FAST_TESTING_MODE) INTERVAL_EXERCISE_TEST_MINUTES else INTERVAL_EXERCISE_PROD_MINUTES
+
+        val INTERVAL_WALK_MINUTES: Int
+            get() = if (FAST_TESTING_MODE) INTERVAL_WALK_TEST_MINUTES else INTERVAL_WALK_PROD_MINUTES
+
+        val INTERVAL_PREVENTIVE_WALK_MINUTES: Int
+            get() = if (FAST_TESTING_MODE) INTERVAL_PREVENTIVE_WALK_TEST_MINUTES else INTERVAL_PREVENTIVE_WALK_PROD_MINUTES
+
+        val INTERVAL_SNOOZE_MINUTES: Int
+            get() = if (FAST_TESTING_MODE) INTERVAL_SNOOZE_TEST_MINUTES else INTERVAL_SNOOZE_PROD_MINUTES
 
         private val _cycleState = MutableStateFlow(CycleState())
         val cycleState: StateFlow<CycleState> = _cycleState.asStateFlow()
@@ -169,6 +378,14 @@ class AlarmCycleService : Service() {
         fun taskCompleted(context: Context, type: String) {
             val intent = Intent(context, AlarmCycleService::class.java).apply {
                 action = ACTION_TASK_COMPLETED
+                putExtra(EXTRA_COMPLETED_TYPE, type)
+            }
+            context.startService(intent)
+        }
+
+        fun alarmFired(context: Context, type: String) {
+            val intent = Intent(context, AlarmCycleService::class.java).apply {
+                action = ACTION_ALARM_FIRED
                 putExtra(EXTRA_COMPLETED_TYPE, type)
             }
             context.startService(intent)
@@ -207,6 +424,13 @@ class AlarmCycleService : Service() {
         fun resumeCycle(context: Context) {
             val intent = Intent(context, AlarmCycleService::class.java).apply {
                 action = ACTION_RESUME_CYCLE
+            }
+            context.startService(intent)
+        }
+
+        fun resetUserCycle(context: Context) {
+            val intent = Intent(context, AlarmCycleService::class.java).apply {
+                action = ACTION_RESET_USER_CYCLE
             }
             context.startService(intent)
         }

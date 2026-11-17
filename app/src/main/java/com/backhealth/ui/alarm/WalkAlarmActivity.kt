@@ -17,6 +17,7 @@ import androidx.lifecycle.lifecycleScope
 import com.backhealth.BackHealthApp
 import com.backhealth.alarm.AlarmCycleService
 import com.backhealth.databinding.ActivityWalkAlarmBinding
+import com.backhealth.model.UserPrefs
 import com.backhealth.repository.ProgressRepository
 import kotlinx.coroutines.launch
 
@@ -27,16 +28,47 @@ class WalkAlarmActivity : AppCompatActivity() {
     private var ringtone: Ringtone? = null
     private var vibrator: Vibrator? = null
 
+    private var walkDurationSec = 300 // default 5 mins (disc patient)
+    private var isPreventive = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         showOverLockscreen()
         super.onCreate(savedInstanceState)
         binding = ActivityWalkAlarmBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        loadUserTypeSettings()
         playAlert()
         setupButtons()
     }
 
+    private fun loadUserTypeSettings() {
+        val db = (application as BackHealthApp).database
+        lifecycleScope.launch {
+            val prefs = db.userPrefsDao().getPrefs()
+            isPreventive = prefs?.userType == UserPrefs.USER_TYPE_PREVENTIVE
+
+            if (isPreventive) {
+                // People without back issues: walk for 2-3 mins (3m = 180s)
+                walkDurationSec = 180
+                binding.tvWalkTitle.text = "🚶 Walk Break"
+                binding.tvWalkSubtitle.text = "Take a 2–3 minute walking break. Get your blood flowing and keep your posture active."
+                binding.tvWalkTimerText.text = "03:00"
+                binding.walkProgressBar.max = 180
+                binding.walkProgressBar.progress = 180
+            } else {
+                // People with lumbar disc issues: 5-min walk decompression
+                walkDurationSec = 300
+                binding.tvWalkTitle.text = "🚶 Big Break"
+                binding.tvWalkSubtitle.text = "Get up from your chair, stretch your legs, and walk for 3–5 minutes. Decompress your lumbar spine."
+                binding.tvWalkTimerText.text = "05:00"
+                binding.walkProgressBar.max = 300
+                binding.walkProgressBar.progress = 300
+            }
+        }
+    }
+
+    @Suppress("DEPRECATION")
     private fun showOverLockscreen() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
@@ -51,6 +83,12 @@ class WalkAlarmActivity : AppCompatActivity() {
                         WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
             )
         }
+    }
+
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        playAlert()
     }
 
     private fun playAlert() {
@@ -111,7 +149,7 @@ class WalkAlarmActivity : AppCompatActivity() {
         binding.cardWalkTimer.visibility = View.VISIBLE
         binding.btnFinishWalkEarly.visibility = View.VISIBLE
 
-        val totalMillis = 300 * 1000L // 5 minutes = 300s
+        val totalMillis = walkDurationSec * 1000L
         countDownTimer = object : CountDownTimer(totalMillis, 1000) {
             override fun onTick(millisUntilFinished: Long) {
                 val totalSec = millisUntilFinished / 1000
@@ -131,9 +169,11 @@ class WalkAlarmActivity : AppCompatActivity() {
         countDownTimer?.cancel()
         val db = (application as BackHealthApp).database
         val progressRepo = ProgressRepository(db.exerciseLogDao(), db.walkLogDao())
+        val minutesToLog = if (isPreventive) 3 else 5
+
         lifecycleScope.launch {
-            progressRepo.recordWalkCompleted(5)
-            // Walk finished -> Next starts 20-min exercise timer!
+            progressRepo.recordWalkCompleted(minutesToLog)
+            // Report completed -> AlarmCycleService schedules next alarm according to userType!
             AlarmCycleService.taskCompleted(this@WalkAlarmActivity, AlarmCycleService.ALARM_TYPE_WALK)
             finish()
         }

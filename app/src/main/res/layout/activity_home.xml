@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light">
+    android:background="@color/bg_obsidian">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -14,13 +14,15 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="20dp">
+            android:paddingHorizontal="24dp"
+            android:paddingTop="28dp"
+            android:paddingBottom="24dp">
 
             <!-- Top Header -->
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp">
+                android:layout_marginBottom="24dp">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -31,85 +33,129 @@
                         android:id="@+id/tvAppTitle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🌿 BackHealth"
-                        android:textColor="@color/teal_primary_dark"
-                        android:textSize="26sp"
+                        android:letterSpacing="0.05"
+                        android:text="BACKHEALTH"
+                        android:textColor="@color/text_primary"
+                        android:textSize="20sp"
                         android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/tvUserTypeBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Focus: Lumbar Spine Care"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="14sp" />
+                        android:layout_marginTop="2dp"
+                        android:text="Lumbar Disc Recovery"
+                        android:textColor="@color/neon_mint"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
-                <ImageButton
-                    android:id="@+id/btnSettings"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
                     android:layout_alignParentEnd="true"
                     android:layout_centerVertical="true"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:contentDescription="Settings"
-                    android:src="@drawable/ic_settings" />
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <!-- Streak Badge Pill -->
+                    <TextView
+                        android:id="@+id/tvStreakCount"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="12dp"
+                        android:background="@drawable/ic_check"
+                        android:backgroundTint="@color/card_dark_slate"
+                        android:paddingHorizontal="12dp"
+                        android:paddingVertical="6dp"
+                        android:text="🔥 1"
+                        android:textColor="@color/amber_accent"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <ImageButton
+                        android:id="@+id/btnSettings"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:background="@drawable/ic_check"
+                        android:backgroundTint="@color/card_dark_slate"
+                        android:contentDescription="Settings"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_settings" />
+                </LinearLayout>
             </RelativeLayout>
 
-            <!-- Next Alarm Card -->
+            <!-- Circular Timer Hero (Oura / Whoop Style) -->
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                app:cardBackgroundColor="@color/surface_card"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="2dp"
-                app:strokeColor="@color/card_stroke"
+                android:layout_marginBottom="24dp"
+                app:cardBackgroundColor="@color/card_dark_slate"
+                app:cardCornerRadius="28dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/card_border"
                 app:strokeWidth="1dp">
 
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
+                    android:layout_height="320dp"
+                    android:gravity="center">
 
-                    <TextView
-                        android:id="@+id/tvNextAlarmLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="NEXT BREAK IN"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="12sp"
-                        android:textStyle="bold" />
+                    <!-- Glowing Circular Progress Track -->
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/circularTimerProgress"
+                        android:layout_width="260dp"
+                        android:layout_height="260dp"
+                        android:layout_centerInParent="true"
+                        android:max="1200"
+                        android:progress="1200"
+                        app:indicatorColor="@color/neon_mint"
+                        app:indicatorSize="250dp"
+                        app:trackColor="@color/card_border"
+                        app:trackCornerRadius="10dp"
+                        app:trackThickness="14dp" />
 
-                    <TextView
-                        android:id="@+id/tvCountdown"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="18:42"
-                        android:textColor="@color/text_primary"
-                        android:textSize="44sp"
-                        android:textStyle="bold" />
-
+                    <!-- Countdown Data in Center of Circle -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp"
-                        android:gravity="center_vertical"
-                        android:orientation="horizontal">
+                        android:layout_centerInParent="true"
+                        android:gravity="center"
+                        android:orientation="vertical">
 
+                        <TextView
+                            android:id="@+id/tvNextAlarmLabel"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.1"
+                            android:text="NEXT BREAK IN"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/tvCountdown"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginVertical="2dp"
+                            android:letterSpacing="-0.02"
+                            android:text="20:00"
+                            android:textColor="@color/text_primary"
+                            android:textSize="48sp"
+                            android:textStyle="bold" />
+
+                        <!-- Break Type Pill Badge -->
                         <TextView
                             android:id="@+id/tvNextAlarmType"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:background="@drawable/ic_alarm"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/ic_check"
                             android:backgroundTint="@color/teal_light"
-                            android:paddingHorizontal="12dp"
+                            android:paddingHorizontal="14dp"
                             android:paddingVertical="6dp"
-                            android:text="🧘 Posture Reset (20m)"
-                            android:textColor="@color/teal_primary_dark"
+                            android:text="🧘 Small Break (Exercise)"
+                            android:textColor="@color/neon_mint"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 
@@ -117,142 +163,116 @@
                             android:id="@+id/tvCycleState"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="10dp"
+                            android:layout_marginTop="6dp"
                             android:text="Cycle Active"
-                            android:textColor="@color/text_secondary"
-                            android:textSize="13sp" />
+                            android:textColor="@color/text_muted"
+                            android:textSize="11sp" />
                     </LinearLayout>
-                </LinearLayout>
+                </RelativeLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Today's Stats Row -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:text="Today's Progress"
-                android:textColor="@color/text_primary"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
+            <!-- Stats Row (Small Breaks vs Big Breaks) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="24dp"
                 android:orientation="horizontal">
 
-                <!-- Exercises Count Card -->
+                <!-- Small Breaks / Exercises Done -->
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardSmallBreaksDone"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    app:cardBackgroundColor="@color/teal_light"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
+                    app:cardBackgroundColor="@color/card_dark_slate"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/card_border"
+                    app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🧘 SMALL BREAKS"
+                            android:textColor="@color/neon_mint"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvExercisesDone"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
                             android:text="0"
-                            android:textColor="@color/teal_primary_dark"
-                            android:textSize="28sp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="32sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Exercises"
-                            android:textColor="@color/teal_primary_dark"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
+                            android:text="Posture Resets"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
-                <!-- Walks Count Card -->
+                <!-- Big Breaks / Walks Done -->
                 <com.google.android.material.card.MaterialCardView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
+                    android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    app:cardBackgroundColor="@color/blue_light"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
+                    app:cardBackgroundColor="@color/card_dark_slate"
+                    app:cardCornerRadius="20dp"
+                    app:cardElevation="0dp"
+                    app:strokeColor="@color/card_border"
+                    app:strokeWidth="1dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="18dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="🚶 BIG BREAKS"
+                            android:textColor="@color/neon_cyan"
+                            android:textSize="11sp"
+                            android:textStyle="bold" />
 
                         <TextView
                             android:id="@+id/tvWalksDone"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
                             android:text="0"
-                            android:textColor="@color/blue_accent"
-                            android:textSize="28sp"
+                            android:textColor="@color/text_primary"
+                            android:textSize="32sp"
                             android:textStyle="bold" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="2dp"
-                            android:text="Walks (5m)"
-                            android:textColor="@color/blue_accent"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Streak Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    app:cardBackgroundColor="@color/amber_light"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="0dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <TextView
-                            android:id="@+id/tvStreakCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="🔥 1"
-                            android:textColor="@color/amber_accent"
-                            android:textSize="28sp"
-                            android:textStyle="bold" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="Day Streak"
-                            android:textColor="@color/amber_accent"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
+                            android:text="5-min Walks"
+                            android:textColor="@color/text_secondary"
+                            android:textSize="12sp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
 
-            <!-- Quick Action Buttons -->
+            <!-- Primary Action: Mid-Day Rest -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnTakeRest"
                 android:layout_width="match_parent"
@@ -260,10 +280,13 @@
                 android:layout_marginBottom="12dp"
                 android:text="😴 Take a Mid-Day Rest"
                 android:textAllCaps="false"
+                android:textColor="@color/bg_obsidian"
                 android:textSize="16sp"
-                app:backgroundTint="@color/teal_primary"
+                android:textStyle="bold"
+                app:backgroundTint="@color/neon_mint"
                 app:cornerRadius="16dp" />
 
+            <!-- Secondary Actions -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -279,8 +302,9 @@
                     android:layout_weight="1"
                     android:text="⏸ Pause Day"
                     android:textAllCaps="false"
+                    android:textColor="@color/text_primary"
                     app:cornerRadius="14dp"
-                    app:strokeColor="@color/card_stroke" />
+                    app:strokeColor="@color/card_border" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnLibrary"
@@ -291,8 +315,9 @@
                     android:layout_weight="1"
                     android:text="📚 Library"
                     android:textAllCaps="false"
+                    android:textColor="@color/text_primary"
                     app:cornerRadius="14dp"
-                    app:strokeColor="@color/card_stroke" />
+                    app:strokeColor="@color/card_border" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -302,7 +327,7 @@
                 android:layout_height="48dp"
                 android:text="📊 View Detailed Progress &amp; History"
                 android:textAllCaps="false"
-                android:textColor="@color/teal_primary_dark" />
+                android:textColor="@color/neon_cyan" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

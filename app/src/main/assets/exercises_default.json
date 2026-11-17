@@ -27,6 +27,7 @@
           "durationUnit": "reps",
           "coachingCue": "Hold your desk for balance. Push straight up onto your toes.",
           "warning": "",
+          "videoUrl": "",
           "enabled": true,
           "sortOrder": 2
         },
@@ -166,6 +167,7 @@
           "durationUnit": "seconds",
           "coachingCue": "Interlock your fingers and reach both hands straight up toward the ceiling. Elongate your entire body vertically. Push strictly upward; do not lean backward.",
           "warning": "Push strictly upward; do not lean backward.",
+          "videoUrl": "",
           "enabled": true,
           "sortOrder": 6
         },
