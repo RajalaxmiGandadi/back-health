@@ -58,30 +58,68 @@
                     android:gravity="center_vertical"
                     android:orientation="horizontal">
 
-                    <!-- Streak Badge Pill -->
-                    <TextView
-                        android:id="@+id/tvStreakCount"
+                    <!-- Streak / Consistency Badge Pill -->
+                    <com.google.android.material.card.MaterialCardView
+                        android:id="@+id/cardStreak"
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginEnd="12dp"
-                        android:background="@drawable/ic_check"
-                        android:backgroundTint="@color/card_dark_slate"
-                        android:paddingHorizontal="12dp"
-                        android:paddingVertical="6dp"
-                        android:text="🔥 1"
-                        android:textColor="@color/amber_accent"
-                        android:textSize="13sp"
-                        android:textStyle="bold" />
+                        android:layout_height="44dp"
+                        android:layout_marginEnd="10dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardBackgroundColor="@color/card_dark_slate"
+                        app:cardCornerRadius="22dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/card_border"
+                        app:strokeWidth="1dp">
 
-                    <ImageButton
-                        android:id="@+id/btnSettings"
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingHorizontal="14dp">
+
+                            <TextView
+                                android:id="@+id/tvFireEmoji"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:includeFontPadding="false"
+                                android:text="🔥"
+                                android:textSize="22sp" />
+
+                            <TextView
+                                android:id="@+id/tvStreakCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:includeFontPadding="false"
+                                android:text="1"
+                                android:textColor="@color/amber_accent"
+                                android:textSize="16sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="44dp"
                         android:layout_height="44dp"
-                        android:background="@drawable/ic_check"
-                        android:backgroundTint="@color/card_dark_slate"
-                        android:contentDescription="Settings"
-                        android:padding="10dp"
-                        android:src="@drawable/ic_settings" />
+                        app:cardBackgroundColor="@color/card_dark_slate"
+                        app:cardCornerRadius="22dp"
+                        app:cardElevation="0dp"
+                        app:strokeColor="@color/card_border"
+                        app:strokeWidth="1dp">
+
+                        <ImageButton
+                            android:id="@+id/btnSettings"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:background="@android:color/transparent"
+                            android:contentDescription="Settings"
+                            android:padding="10dp"
+                            android:scaleType="centerInside"
+                            android:src="@drawable/ic_settings"
+                            app:tint="@color/text_primary" />
+                    </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
             </RelativeLayout>
 

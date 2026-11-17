@@ -88,6 +88,10 @@ class HomeActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
+        binding.cardStreak.setOnClickListener {
+            startActivity(Intent(this, ProgressActivity::class.java))
+        }
+
         binding.btnSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
@@ -161,7 +165,7 @@ class HomeActivity : AppCompatActivity() {
 
                 launch {
                     viewModel.streak.collectLatest { streakCount ->
-                        binding.tvStreakCount.text = "🔥 $streakCount"
+                        binding.tvStreakCount.text = streakCount.toString()
                     }
                 }
 
