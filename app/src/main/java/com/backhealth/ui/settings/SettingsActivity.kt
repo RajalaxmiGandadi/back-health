@@ -41,12 +41,6 @@ class SettingsActivity : AppCompatActivity() {
     private fun loadSettings() {
         lifecycleScope.launch {
             val prefs = userPrefsRepo.getPrefs()
-            if (prefs.userType == UserPrefs.USER_TYPE_PREVENTIVE) {
-                binding.rbSettingPreventive.isChecked = true
-            } else {
-                binding.rbSettingDiscPatient.isChecked = true
-            }
-
             binding.btnSettingWakeTime.text = "Wake: ${prefs.wakeTime}"
             binding.btnSettingBedTime.text = "Bed: ${prefs.bedTime}"
             binding.switchSound.isChecked = prefs.soundEnabled
@@ -112,30 +106,6 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun setupListeners() {
-        binding.rgSettingUserType.setOnCheckedChangeListener { _, checkedId ->
-            val newUserType = if (checkedId == binding.rbSettingPreventive.id) {
-                UserPrefs.USER_TYPE_PREVENTIVE
-            } else {
-                UserPrefs.USER_TYPE_DISC_PATIENT
-            }
-
-            lifecycleScope.launch {
-                val currentPrefs = userPrefsRepo.getPrefs()
-                if (currentPrefs.userType != newUserType) {
-                    userPrefsRepo.savePrefs(currentPrefs.copy(userType = newUserType))
-                    AlarmCycleService.resetUserCycle(this@SettingsActivity)
-                    updateBreakTimesUI()
-
-                    val toastMsg = if (newUserType == UserPrefs.USER_TYPE_PREVENTIVE) {
-                        "Switched to Preventive: Walk for 5m every 40m"
-                    } else {
-                        "Switched to Disc Recovery: Alternating 20m cycle"
-                    }
-                    Toast.makeText(this@SettingsActivity, toastMsg, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-
         binding.btnSettingWakeTime.setOnClickListener {
             lifecycleScope.launch {
                 val current = userPrefsRepo.getPrefs().wakeTime.split(":")

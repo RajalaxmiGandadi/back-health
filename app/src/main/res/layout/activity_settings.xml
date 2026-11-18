@@ -26,53 +26,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <!-- Focus Routine Profile -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:text="Back Health Focus"
-                android:textColor="@color/text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
-                app:cardBackgroundColor="@color/card_dark_slate"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="0dp"
-                app:strokeColor="@color/card_border"
-                app:strokeWidth="1dp">
-
-                <RadioGroup
-                    android:id="@+id/rgSettingUserType"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:padding="16dp">
-
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/rbSettingDiscPatient"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Lumbar Disc Recovery\n(Small Break exercises + Big Break walking every 20m)"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        app:buttonTint="@color/neon_mint" />
-
-                    <com.google.android.material.radiobutton.MaterialRadioButton
-                        android:id="@+id/rbSettingPreventive"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="Preventive (No Back Issues)\n(Walk for 5 min every 40m, no exercise alarms)"
-                        android:textColor="@color/text_primary"
-                        android:textSize="14sp"
-                        app:buttonTint="@color/neon_cyan" />
-                </RadioGroup>
-            </com.google.android.material.card.MaterialCardView>
-
             <!-- Active Schedule / Sleep Window -->
             <TextView
                 android:layout_width="wrap_content"
