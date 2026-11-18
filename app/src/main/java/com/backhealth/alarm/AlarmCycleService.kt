@@ -33,6 +33,8 @@ class AlarmCycleService : Service() {
                 restoreOrScheduleCycle()
             }
             ACTION_TASK_COMPLETED -> {
+                AlarmScheduler.cancelAlarms(this)
+                com.backhealth.utils.AlarmSoundManager.stop(this)
                 val completedType = intent?.getStringExtra(EXTRA_COMPLETED_TYPE) ?: ALARM_TYPE_EXERCISE
                 scheduleNextAfterTask(completedType)
             }
@@ -42,14 +44,16 @@ class AlarmCycleService : Service() {
             }
             ACTION_ALARM_ACKNOWLEDGED -> {
                 // User is actively viewing the alarm activity (doing exercises or walking)!
-                // Cancel pending auto-snooze so no outside alarm interrupts the active session
+                // Cancel pending auto-snooze and silence sound so no outside alarm interrupts the active session
                 AlarmScheduler.cancelAlarms(this)
+                com.backhealth.utils.AlarmSoundManager.stop(this)
                 val prefs = getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
                 prefs.edit().putBoolean(KEY_IS_SNOOZE, false).apply()
                 _cycleState.value = _cycleState.value.copy(isSnooze = false)
                 updateForegroundNotification("Active break in progress...")
             }
             ACTION_SNOOZE -> {
+                com.backhealth.utils.AlarmSoundManager.stop(this)
                 val currentType = intent?.getStringExtra(EXTRA_COMPLETED_TYPE) ?: _cycleState.value.nextAlarmType
                 startNextAlarm(currentType, INTERVAL_SNOOZE_MINUTES, isSnooze = true)
             }

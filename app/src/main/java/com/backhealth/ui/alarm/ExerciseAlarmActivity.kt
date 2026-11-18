@@ -207,35 +207,7 @@ class ExerciseAlarmActivity : AppCompatActivity() {
     }
 
     private fun playAlert() {
-        try {
-            val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
-                ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-            ringtone = RingtoneManager.getRingtone(applicationContext, alarmUri)
-            ringtone?.play()
-
-            vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val vm = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-                vm.defaultVibrator
-            } else {
-                @Suppress("DEPRECATION")
-                getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
-            }
-
-            val pattern = longArrayOf(0, 500, 300, 500)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator?.vibrate(VibrationEffect.createWaveform(pattern, -1))
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator?.vibrate(pattern, -1)
-            }
-
-            // Automatically silence after 3 seconds so user is not disturbed while doing exercise
-            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                stopAlert()
-            }, 3000)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        com.backhealth.utils.AlarmSoundManager.play(this)
     }
 
     override fun onUserInteraction() {
@@ -245,12 +217,7 @@ class ExerciseAlarmActivity : AppCompatActivity() {
     }
 
     private fun stopAlert() {
-        try {
-            ringtone?.stop()
-            vibrator?.cancel()
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
+        com.backhealth.utils.AlarmSoundManager.stop(this)
     }
 
     private fun startMicroBreakTimer() {
