@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.backhealth.BackHealthApp
 import com.backhealth.alarm.AlarmCycleService
+import com.backhealth.alarm.AlarmReceiver
 import com.backhealth.databinding.ActivityWalkAlarmBinding
 import com.backhealth.model.UserPrefs
 import com.backhealth.repository.ProgressRepository
@@ -36,6 +37,13 @@ class WalkAlarmActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityWalkAlarmBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
+        // Clear outside status-bar alarm notification
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        notificationManager.cancel(AlarmReceiver.NOTIFICATION_ID_WALK)
+
+        // Acknowledge alarm with cycle service to cancel pending auto-snooze loop
+        AlarmCycleService.alarmAcknowledged(this)
 
         loadUserTypeSettings()
         playAlert()
@@ -90,6 +98,9 @@ class WalkAlarmActivity : AppCompatActivity() {
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        notificationManager.cancel(AlarmReceiver.NOTIFICATION_ID_WALK)
+        AlarmCycleService.alarmAcknowledged(this)
         playAlert()
     }
 
@@ -115,9 +126,24 @@ class WalkAlarmActivity : AppCompatActivity() {
                 @Suppress("DEPRECATION")
                 vibrator?.vibrate(pattern, -1)
             }
+
+            // Automatically silence after 3 seconds so user is not disturbed while walking
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                stopAlert()
+            }, 3000)
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        stopAlert()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopAlert()
     }
 
     private fun stopAlert() {

@@ -43,6 +43,13 @@ class ExerciseAlarmActivity : AppCompatActivity() {
         binding = ActivityExerciseAlarmBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        // Clear outside status-bar alarm notification
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        notificationManager.cancel(AlarmReceiver.NOTIFICATION_ID_EXERCISE)
+
+        // Acknowledge alarm with cycle service to cancel pending auto-snooze loop
+        AlarmCycleService.alarmAcknowledged(this)
+
         setupVideoTabs()
         extractExercises()
         playAlert()
@@ -70,6 +77,9 @@ class ExerciseAlarmActivity : AppCompatActivity() {
     override fun onNewIntent(intent: android.content.Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+        notificationManager.cancel(AlarmReceiver.NOTIFICATION_ID_EXERCISE)
+        AlarmCycleService.alarmAcknowledged(this)
         extractExercises()
         playAlert()
         startMicroBreakTimer()
@@ -218,9 +228,20 @@ class ExerciseAlarmActivity : AppCompatActivity() {
                 @Suppress("DEPRECATION")
                 vibrator?.vibrate(pattern, -1)
             }
+
+            // Automatically silence after 3 seconds so user is not disturbed while doing exercise
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                stopAlert()
+            }, 3000)
         } catch (e: Exception) {
             e.printStackTrace()
         }
+    }
+
+    override fun onUserInteraction() {
+        super.onUserInteraction()
+        // Stop ringing the instant user touches or scrolls on the exercise screen
+        stopAlert()
     }
 
     private fun stopAlert() {
@@ -277,6 +298,7 @@ class ExerciseAlarmActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        stopAlert()
         try {
             binding.videoView3D.pause()
         } catch (e: Exception) {

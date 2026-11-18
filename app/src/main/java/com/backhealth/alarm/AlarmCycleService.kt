@@ -40,6 +40,15 @@ class AlarmCycleService : Service() {
                 val firedType = intent?.getStringExtra(EXTRA_COMPLETED_TYPE) ?: _cycleState.value.nextAlarmType
                 handleAlarmFired(firedType)
             }
+            ACTION_ALARM_ACKNOWLEDGED -> {
+                // User is actively viewing the alarm activity (doing exercises or walking)!
+                // Cancel pending auto-snooze so no outside alarm interrupts the active session
+                AlarmScheduler.cancelAlarms(this)
+                val prefs = getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
+                prefs.edit().putBoolean(KEY_IS_SNOOZE, false).apply()
+                _cycleState.value = _cycleState.value.copy(isSnooze = false)
+                updateForegroundNotification("Active break in progress...")
+            }
             ACTION_SNOOZE -> {
                 val currentType = intent?.getStringExtra(EXTRA_COMPLETED_TYPE) ?: _cycleState.value.nextAlarmType
                 startNextAlarm(currentType, INTERVAL_SNOOZE_MINUTES, isSnooze = true)
@@ -326,6 +335,7 @@ class AlarmCycleService : Service() {
         const val ACTION_START_CYCLE = "ACTION_START_CYCLE"
         const val ACTION_TASK_COMPLETED = "ACTION_TASK_COMPLETED"
         const val ACTION_ALARM_FIRED = "ACTION_ALARM_FIRED"
+        const val ACTION_ALARM_ACKNOWLEDGED = "ACTION_ALARM_ACKNOWLEDGED"
         const val ACTION_SNOOZE = "ACTION_SNOOZE"
         const val ACTION_START_REST = "ACTION_START_REST"
         const val ACTION_REST_EXPIRED = "ACTION_REST_EXPIRED"
@@ -387,6 +397,13 @@ class AlarmCycleService : Service() {
             val intent = Intent(context, AlarmCycleService::class.java).apply {
                 action = ACTION_ALARM_FIRED
                 putExtra(EXTRA_COMPLETED_TYPE, type)
+            }
+            context.startService(intent)
+        }
+
+        fun alarmAcknowledged(context: Context) {
+            val intent = Intent(context, AlarmCycleService::class.java).apply {
+                action = ACTION_ALARM_ACKNOWLEDGED
             }
             context.startService(intent)
         }
