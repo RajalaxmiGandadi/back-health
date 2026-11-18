@@ -355,7 +355,7 @@ class AlarmCycleService : Service() {
         const val ALARM_TYPE_WALK = "WALK"
 
         // Mode switch: Set to true for rapid testing (1m / 2m), false for production (20m / 40m)
-        const val FAST_TESTING_MODE = true
+        const val FAST_TESTING_MODE = false
 
         const val INTERVAL_EXERCISE_PROD_MINUTES = 20
         const val INTERVAL_WALK_PROD_MINUTES = 20
