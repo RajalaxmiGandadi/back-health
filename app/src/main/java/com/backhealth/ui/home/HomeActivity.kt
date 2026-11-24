@@ -51,7 +51,21 @@ class HomeActivity : AppCompatActivity() {
         val userPrefsRepo = UserPrefsRepository(db.userPrefsDao())
         viewModel = HomeViewModel(progressRepo, userPrefsRepo)
 
-        checkOnboardingStatus(userPrefsRepo)
+        // Ensure onboarding has been completed; if not, immediately redirect to Onboarding
+        val userPrefsSp = getSharedPreferences("spinehealth_user_prefs", android.content.Context.MODE_PRIVATE)
+        val isSetupDone = userPrefsSp.getBoolean("onboarding_complete", false) && (userPrefsSp.getInt("setup_version", 0) >= 2)
+        if (!isSetupDone) {
+            val intent = Intent(this, OnboardingActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(intent)
+            finish()
+            return
+        }
+
+        // Guarantee timer is actively running and populated immediately (0ms delay)
+        AlarmCycleService.ensureCycleRunning(this)
+
         requestRequiredPermissions()
         setupClickListeners()
         observeViewModel()
@@ -60,21 +74,7 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         viewModel.loadStreak()
-    }
-
-    private fun checkOnboardingStatus(userPrefsRepo: UserPrefsRepository) {
-        lifecycleScope.launch {
-            val prefs = userPrefsRepo.getPrefs()
-            if (!prefs.isOnboardingComplete) {
-                startActivity(Intent(this@HomeActivity, OnboardingActivity::class.java))
-                finish()
-            } else {
-                // Onboarding complete - ensure AlarmCycleService is running
-                if (!prefs.isCyclePaused) {
-                    AlarmCycleService.start(this@HomeActivity)
-                }
-            }
-        }
+        AlarmCycleService.ensureCycleRunning(this)
     }
 
     private fun requestRequiredPermissions() {
@@ -127,8 +127,16 @@ class HomeActivity : AppCompatActivity() {
                     viewModel.countdownText.collectLatest { timeText ->
                         binding.tvCountdown.text = timeText
                         val state = viewModel.cycleState.value
-                        if (state.nextAlarmEpochMillis > 0L) {
-                            val remainingSec = (maxOf(0L, state.nextAlarmEpochMillis - System.currentTimeMillis()) / 1000).toInt()
+                        val now = System.currentTimeMillis()
+                        val activeEpoch = if (state.nextAlarmEpochMillis > 0L) {
+                            state.nextAlarmEpochMillis
+                        } else {
+                            getSharedPreferences(AlarmCycleService.PREFS_CYCLE, android.content.Context.MODE_PRIVATE)
+                                .getLong(AlarmCycleService.KEY_NEXT_ALARM_EPOCH, 0L)
+                        }
+
+                        if (activeEpoch > now) {
+                            val remainingSec = ((activeEpoch - now) / 1000).toInt()
                             val totalSec = if (isPreventive) {
                                 AlarmCycleService.INTERVAL_PREVENTIVE_WALK_MINUTES * 60
                             } else if (state.nextAlarmType == AlarmCycleService.ALARM_TYPE_EXERCISE) {
@@ -138,8 +146,8 @@ class HomeActivity : AppCompatActivity() {
                             }
                             binding.circularTimerProgress.max = maxOf(1, totalSec)
                             binding.circularTimerProgress.setProgressCompat(minOf(totalSec, remainingSec), true)
-                        } else if (state.isResting && state.restEndEpochMillis > 0L) {
-                            val remainingSec = (maxOf(0L, state.restEndEpochMillis - System.currentTimeMillis()) / 1000).toInt()
+                        } else if (state.isResting && state.restEndEpochMillis > now) {
+                            val remainingSec = (maxOf(0L, state.restEndEpochMillis - now) / 1000).toInt()
                             binding.circularTimerProgress.setProgressCompat(remainingSec, true)
                         }
                     }
@@ -176,7 +184,7 @@ class HomeActivity : AppCompatActivity() {
                         val focusLabel = if (isPreventive) {
                             "Focus: Preventive Care (Walk Every 40m)"
                         } else {
-                            "Focus: Lumbar Disc Recovery (L4-L5/L5-S1)"
+                            "Focus: Spine & Disc Recovery (Cervical & Lumbar)"
                         }
                         binding.tvUserTypeBadge.text = focusLabel
                         binding.cardSmallBreaksDone.visibility = if (isPreventive) View.GONE else View.VISIBLE

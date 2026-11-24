@@ -3,22 +3,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_light"
+    android:background="@color/bg_obsidian"
     android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="24dp">
+        android:padding="20dp">
 
+        <!-- Welcome Header -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Welcome to BackHealth 🌿"
-            android:textColor="@color/teal_primary_dark"
-            android:textSize="28sp"
+            android:layout_marginTop="16dp"
+            android:text="Welcome to SpineHealth 🌿"
+            android:textColor="@color/neon_mint"
+            android:textSize="26sp"
             android:textStyle="bold" />
 
         <TextView
@@ -26,136 +27,228 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="24dp"
-            android:text="Protect your lumbar spine with timed micro-breaks throughout your active work day."
+            android:text="Set up your cervical &amp; lumbar spine care routine by answering 3 quick questions:"
             android:textColor="@color/text_secondary"
-            android:textSize="15sp" />
+            android:textSize="14sp" />
 
-        <!-- User Persona Selection -->
+        <!-- 1. Persona Question -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Who are you?"
+            android:text="1. Do you have a back or neck disc issue, or is it preventive?"
             android:textColor="@color/text_primary"
-            android:textSize="17sp"
-            android:textStyle="bold" />
-
-        <RadioGroup
-            android:id="@+id/rgUserType"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="24dp">
-
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/rbDiscPatient"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:checked="true"
-                android:padding="12dp"
-                android:text="I have a lumbar disc issue (L4-L5 / L5-S1)\n→ Small Break exercises + Big Break walking alternating every 20m"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp" />
-
-            <com.google.android.material.radiobutton.MaterialRadioButton
-                android:id="@+id/rbPreventive"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:padding="12dp"
-                android:text="I don't have back issues (Preventive)\n→ Walk for 5 mins after every 40 mins (no exercise alarms)"
-                android:textColor="@color/text_primary"
-                android:textSize="14sp" />
-        </RadioGroup>
-
-        <!-- Sleep Window Selection -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Your Daily Active Window"
-            android:textColor="@color/text_primary"
-            android:textSize="17sp"
+            android:textSize="16sp"
             android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
-            android:layout_marginBottom="12dp"
-            android:text="Alarms will never sound when you are sleeping."
-            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="10dp"
+            android:text="Select the routine tailored to your spine condition:"
+            android:textColor="@color/text_muted"
             android:textSize="13sp" />
 
-        <LinearLayout
+        <RadioGroup
+            android:id="@+id/rgUserType"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp">
+
+            <!-- Lumbar & Cervical Disc Recovery Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardDiscPatient"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@color/card_dark_slate"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/card_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <com.google.android.material.radiobutton.MaterialRadioButton
+                        android:id="@+id/rbDiscPatient"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="🧘 Spine &amp; Disc Recovery (Cervical &amp; Lumbar)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:buttonTint="@color/neon_mint" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="32dp"
+                        android:layout_marginTop="4dp"
+                        android:text="• Small Break posture exercises every 20 mins\n• Big Break walking every 20 mins (alternating)\n• Alleviates neck (C5–C7) &amp; lower back (L4–S1) disc compression"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Preventive Care Card -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardPreventive"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                app:cardBackgroundColor="@color/card_dark_slate"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@color/card_border"
+                app:strokeWidth="1dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <com.google.android.material.radiobutton.MaterialRadioButton
+                        android:id="@+id/rbPreventive"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="🚶 Preventive Care (No Back/Neck Issues)"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        app:buttonTint="@color/neon_cyan" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="32dp"
+                        android:layout_marginTop="4dp"
+                        android:text="• Walk for 5 mins after every 40 mins\n• No 20-min exercise alarm required\n• Keeps posture active and avoids prolonged sitting"
+                        android:textColor="@color/text_secondary"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </RadioGroup>
+
+        <!-- 2. Wake Up Time Question -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2. What is your wake-up time?"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="10dp"
+            android:text="Your daily breaks and alarms begin after you wake up."
+            android:textColor="@color/text_muted"
+            android:textSize="13sp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnWakeTime"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
             android:layout_marginBottom="24dp"
-            android:orientation="horizontal">
+            android:text="⏰ Wake-Up: 07:00 AM (Tap to change)"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            app:cornerRadius="14dp"
+            app:strokeColor="@color/neon_mint"
+            app:strokeWidth="1dp" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnWakeTime"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                android:text="Wake: 07:00 AM"
-                android:textAllCaps="false"
-                app:cornerRadius="12dp" />
+        <!-- 3. Sleep Time Question -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3. What is your sleep / bed time?"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnBedTime"
-                style="@style/Widget.Material3.Button.OutlinedButton"
-                android:layout_width="0dp"
-                android:layout_height="56dp"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="Bed: 10:00 PM"
-                android:textAllCaps="false"
-                app:cornerRadius="12dp" />
-        </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:layout_marginBottom="10dp"
+            android:text="Alarms will be completely muted during your sleep hours."
+            android:textColor="@color/text_muted"
+            android:textSize="13sp" />
 
-        <!-- Permissions Note -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBedTime"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="28dp"
+            android:text="🌙 Bed Time: 10:00 PM (Tap to change)"
+            android:textAllCaps="false"
+            android:textColor="@color/text_primary"
+            android:textSize="15sp"
+            app:cornerRadius="14dp"
+            app:strokeColor="@color/neon_cyan"
+            app:strokeWidth="1dp" />
+
+        <!-- Exact Alarms & Lockscreen Note -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            app:cardBackgroundColor="@color/teal_light"
-            app:cardCornerRadius="16dp"
-            app:cardElevation="0dp">
+            android:layout_marginBottom="24dp"
+            app:cardBackgroundColor="@color/card_dark_slate"
+            app:cardCornerRadius="14dp"
+            app:cardElevation="0dp"
+            app:strokeColor="@color/card_border"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp">
+                android:padding="14dp">
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="⏱ Exact Alarms &amp; Notifications"
-                    android:textColor="@color/teal_primary_dark"
-                    android:textSize="15sp"
+                    android:textColor="@color/neon_mint"
+                    android:textSize="14sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="BackHealth needs permission to sound alarms and display full-screen breaks even when your phone is locked."
-                    android:textColor="@color/teal_primary_dark"
-                    android:textSize="13sp" />
+                    android:text="SpineHealth uses exact hardware alarms to remind you right on schedule, even when your screen is locked."
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
+        <!-- Save and Start Button -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGetStarted"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:layout_marginTop="24dp"
-            android:layout_marginBottom="16dp"
-            android:text="Start My Healthy Routine 🚀"
+            android:layout_marginBottom="24dp"
+            android:text="Save &amp; Start My Routine 🚀"
             android:textAllCaps="false"
+            android:textColor="@color/bg_obsidian"
             android:textSize="16sp"
-            app:backgroundTint="@color/teal_primary"
+            android:textStyle="bold"
+            app:backgroundTint="@color/neon_mint"
             app:cornerRadius="16dp" />
 
     </LinearLayout>

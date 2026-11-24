@@ -66,10 +66,10 @@ class WalkAlarmActivity : AppCompatActivity() {
                 binding.walkProgressBar.progress = 300
                 binding.btnFinishWalkEarly.text = "✅ Finished Walk (Next Walk in 40m)"
             } else {
-                // People with lumbar disc issues: 5-min walk decompression
+                // People with disc issues: 5-min walk decompression
                 walkDurationSec = 300
                 binding.tvWalkTitle.text = "🚶 Big Break"
-                binding.tvWalkSubtitle.text = "Get up from your chair, stretch your legs, and walk for 5 minutes. Decompress your lumbar spine."
+                binding.tvWalkSubtitle.text = "Get up from your chair, stretch your legs, and walk for 5 minutes. Decompress your cervical and lumbar spine."
                 binding.tvWalkTimerText.text = "05:00"
                 binding.walkProgressBar.max = 300
                 binding.walkProgressBar.progress = 300

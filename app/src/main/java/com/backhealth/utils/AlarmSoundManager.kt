@@ -22,12 +22,17 @@ object AlarmSoundManager {
     private var autoSilenceHandler: Handler? = null
     private var autoSilenceRunnable: Runnable? = null
 
+    /**
+     * Plays alarm audio on the hardware alarm stream and pulses vibration continuously
+     * until the user touches the screen or taps an action button.
+     * @param timeoutMs Safety timeout to prevent infinite battery drain if left unattended (default 60s).
+     */
     @Synchronized
-    fun play(context: Context) {
-        // Always stop and cleanup any existing audio/vibration before starting
+    fun playAlarm(context: Context, timeoutMs: Long = 60000L) {
+        // Stop any previous instance first
         stop(context)
 
-        // 1. Play Alarm Audio via MediaPlayer (Rock-solid hardware audio stream control)
+        // 1. Play Alarm Audio via MediaPlayer (Highest priority hardware ALARM audio stream)
         try {
             val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
                 ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
@@ -46,7 +51,7 @@ object AlarmSoundManager {
             }
             mediaPlayer = mp
         } catch (e: Exception) {
-            // Fallback to RingtoneManager if device denies MediaPlayer on specific URI
+            // Fallback to RingtoneManager if device restricts direct MediaPlayer on specific alarm URI
             try {
                 val alarmUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
                     ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
@@ -64,7 +69,7 @@ object AlarmSoundManager {
             }
         }
 
-        // 2. Start Vibration Alert
+        // 2. Start Repeating Vibration Pattern (vibrate 800ms, pause 400ms, repeat continuously)
         try {
             vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
@@ -74,23 +79,32 @@ object AlarmSoundManager {
                 context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             }
 
-            val pattern = longArrayOf(0, 500, 300, 500)
+            val pattern = longArrayOf(0, 800, 400, 800, 400)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator?.vibrate(VibrationEffect.createWaveform(pattern, -1))
+                // repeat index 0 -> loop continuously until cancelled
+                vibrator?.vibrate(VibrationEffect.createWaveform(pattern, 0))
             } else {
                 @Suppress("DEPRECATION")
-                vibrator?.vibrate(pattern, -1)
+                vibrator?.vibrate(pattern, 0)
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
 
-        // 3. Auto-silence after 3 seconds so audio never keeps blaring while exercising/walking
+        // 3. Safety auto-silence timer (60s) so audio never blares infinitely if phone is unattended
         autoSilenceHandler = Handler(Looper.getMainLooper())
         autoSilenceRunnable = Runnable {
             stop(context)
         }
-        autoSilenceHandler?.postDelayed(autoSilenceRunnable!!, 3000)
+        autoSilenceHandler?.postDelayed(autoSilenceRunnable!!, timeoutMs)
+    }
+
+    /**
+     * Backward-compatible shorthand.
+     */
+    @Synchronized
+    fun play(context: Context) {
+        playAlarm(context)
     }
 
     @Synchronized
@@ -134,7 +148,7 @@ object AlarmSoundManager {
         }
         vibrator = null
 
-        // Dismiss system notification channels to stop any system-level alert sound
+        // Dismiss outside alarm notifications
         try {
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             nm.cancel(AlarmReceiver.NOTIFICATION_ID_EXERCISE)
