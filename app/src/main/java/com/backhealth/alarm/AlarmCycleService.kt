@@ -25,6 +25,16 @@ class AlarmCycleService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    override fun onCreate() {
+        super.onCreate()
+        try {
+            val notification = createNotification("SpineHealth routine active")
+            startForeground(NOTIFICATION_ID_SERVICE, notification)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val action = intent?.action ?: ACTION_START_CYCLE
 
@@ -355,7 +365,7 @@ class AlarmCycleService : Service() {
         const val ALARM_TYPE_WALK = "WALK"
 
         // Mode switch: Set to true for rapid testing (1m / 2m), false for production (20m / 40m)
-        const val FAST_TESTING_MODE = true
+        const val FAST_TESTING_MODE = false
 
         const val INTERVAL_EXERCISE_PROD_MINUTES = 20
         const val INTERVAL_WALK_PROD_MINUTES = 20
@@ -454,6 +464,90 @@ class AlarmCycleService : Service() {
                 action = ACTION_RESET_USER_CYCLE
             }
             context.startService(intent)
+        }
+
+        fun startCycleImmediate(context: Context, userType: String, wakeTime: String, bedTime: String) {
+            val isPreventive = userType == UserPrefs.USER_TYPE_PREVENTIVE
+            val isAwake = SleepWindowChecker.isAwakeTime(wakeTime, bedTime)
+            val targetType = if (isPreventive) ALARM_TYPE_WALK else ALARM_TYPE_EXERCISE
+
+            val triggerEpoch: Long = if (!isAwake) {
+                SleepWindowChecker.getNextWakeUpEpochMillis(wakeTime)
+            } else {
+                val delay = if (isPreventive) INTERVAL_PREVENTIVE_WALK_MINUTES else INTERVAL_EXERCISE_MINUTES
+                System.currentTimeMillis() + (delay * 60 * 1000L)
+            }
+
+            // Immediately persist and schedule
+            val prefs = context.getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
+            prefs.edit()
+                .putLong(KEY_NEXT_ALARM_EPOCH, triggerEpoch)
+                .putString(KEY_NEXT_ALARM_TYPE, targetType)
+                .putBoolean(KEY_IS_RESTING, false)
+                .putLong(KEY_REST_END_EPOCH, 0L)
+                .putBoolean(KEY_IS_SNOOZE, false)
+                .putBoolean(KEY_IS_PAUSED, false)
+                .apply()
+
+            AlarmScheduler.scheduleAlarm(context, triggerEpoch, targetType)
+
+            // Update in-memory state right now so UI sees countdown instantly
+            _cycleState.value = CycleState(
+                nextAlarmType = targetType,
+                nextAlarmEpochMillis = triggerEpoch,
+                isResting = false,
+                isSnooze = false,
+                isPaused = false
+            )
+
+            // Start foreground service
+            start(context)
+        }
+
+        fun ensureCycleRunning(context: Context) {
+            val prefs = context.getSharedPreferences(PREFS_CYCLE, Context.MODE_PRIVATE)
+            val isResting = prefs.getBoolean(KEY_IS_RESTING, false)
+            val nextEpoch = prefs.getLong(KEY_NEXT_ALARM_EPOCH, 0L)
+            val now = System.currentTimeMillis()
+
+            val restEndEpoch = prefs.getLong(KEY_REST_END_EPOCH, 0L)
+            if (isResting && restEndEpoch > now) {
+                _cycleState.value = CycleState(
+                    nextAlarmType = prefs.getString(KEY_NEXT_ALARM_TYPE, ALARM_TYPE_EXERCISE) ?: ALARM_TYPE_EXERCISE,
+                    nextAlarmEpochMillis = 0L,
+                    isResting = true,
+                    restEndEpochMillis = restEndEpoch,
+                    isPaused = false
+                )
+                return
+            }
+
+            val isPaused = prefs.getBoolean(KEY_IS_PAUSED, false)
+            if (isPaused && nextEpoch > now) {
+                _cycleState.value = CycleState(isPaused = true)
+                return
+            }
+
+            if (!isPaused && nextEpoch > now) {
+                // An active alarm is scheduled in the future: ensure state is populated
+                val nextType = prefs.getString(KEY_NEXT_ALARM_TYPE, ALARM_TYPE_EXERCISE) ?: ALARM_TYPE_EXERCISE
+                _cycleState.value = CycleState(
+                    nextAlarmType = nextType,
+                    nextAlarmEpochMillis = nextEpoch,
+                    isResting = false,
+                    isSnooze = prefs.getBoolean(KEY_IS_SNOOZE, false),
+                    isPaused = false
+                )
+                // Ensure foreground service is running
+                start(context)
+            } else {
+                // No active alarm is scheduled (first launch or expired): start immediately!
+                val sp = context.getSharedPreferences("spinehealth_user_prefs", Context.MODE_PRIVATE)
+                val userType = sp.getString("user_type", UserPrefs.USER_TYPE_DISC_PATIENT) ?: UserPrefs.USER_TYPE_DISC_PATIENT
+                val wakeTime = sp.getString("wake_time", "07:00") ?: "07:00"
+                val bedTime = sp.getString("bed_time", "22:00") ?: "22:00"
+                startCycleImmediate(context, userType, wakeTime, bedTime)
+            }
         }
     }
 }

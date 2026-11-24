@@ -72,8 +72,8 @@ class BackHealthApp : Application() {
     }
 
     companion object {
-        const val CHANNEL_ALARMS_ID = "channel_backhealth_alarms"
-        const val CHANNEL_SERVICE_ID = "channel_backhealth_service"
+        const val CHANNEL_ALARMS_ID = "channel_spinehealth_alarms_v2"
+        const val CHANNEL_SERVICE_ID = "channel_spinehealth_service_v2"
 
         lateinit var instance: BackHealthApp
             private set

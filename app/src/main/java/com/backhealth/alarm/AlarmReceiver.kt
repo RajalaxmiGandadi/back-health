@@ -98,19 +98,24 @@ class AlarmReceiver : BroadcastReceiver() {
         ex2Id: String?,
         ex2Name: String?
     ) {
-        val fullScreenIntent = Intent(context, ExerciseAlarmActivity::class.java).apply {
+        val intervalMinutes = AlarmCycleService.INTERVAL_EXERCISE_MINUTES
+
+        val alertIntent = Intent(context, com.backhealth.ui.alarm.AlarmAlertActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-            putExtra(ExerciseAlarmActivity.EXTRA_EX1_ID, ex1Id)
-            putExtra(ExerciseAlarmActivity.EXTRA_EX1_NAME, ex1Name)
-            putExtra(ExerciseAlarmActivity.EXTRA_EX2_ID, ex2Id)
-            putExtra(ExerciseAlarmActivity.EXTRA_EX2_NAME, ex2Name)
+            putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_ALARM_TYPE, AlarmCycleService.ALARM_TYPE_EXERCISE)
+            putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_IS_PREVENTIVE, false)
+            putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_INTERVAL_MINUTES, intervalMinutes)
+            putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_EX1_ID, ex1Id)
+            putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_EX1_NAME, ex1Name)
+            putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_EX2_ID, ex2Id)
+            putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_EX2_NAME, ex2Name)
         }
 
         val uniqueCode = (System.currentTimeMillis() % 100000).toInt()
         val fullScreenPendingIntent = PendingIntent.getActivity(
             context,
             uniqueCode,
-            fullScreenIntent,
+            alertIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
@@ -119,8 +124,8 @@ class AlarmReceiver : BroadcastReceiver() {
 
         val notification = NotificationCompat.Builder(context, BackHealthApp.CHANNEL_ALARMS_ID)
             .setSmallIcon(R.drawable.ic_alarm)
-            .setContentTitle("🧘 Posture Reset Break")
-            .setContentText("Micro-break: $ex1Name + $ex2Name")
+            .setContentTitle("⏰ Time to Decompress! ✨")
+            .setContentText("It's been $intervalMinutes mins. Touch to start posture resets!")
             .setPriority(NotificationCompat.PRIORITY_MAX)
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
@@ -133,32 +138,41 @@ class AlarmReceiver : BroadcastReceiver() {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID_EXERCISE, notification)
 
-        // Attempt direct launch if permitted
+        // Pop up the Alarm Alert screen directly
         try {
-            context.startActivity(fullScreenIntent)
+            context.startActivity(alertIntent)
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
 
     private fun triggerWalkAlarm(context: Context, isPreventive: Boolean) {
-        val fullScreenIntent = Intent(context, WalkAlarmActivity::class.java).apply {
+        val intervalMinutes = if (isPreventive) {
+            AlarmCycleService.INTERVAL_PREVENTIVE_WALK_MINUTES
+        } else {
+            AlarmCycleService.INTERVAL_WALK_MINUTES
+        }
+
+        val alertIntent = Intent(context, com.backhealth.ui.alarm.AlarmAlertActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_ALARM_TYPE, AlarmCycleService.ALARM_TYPE_WALK)
+            putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_IS_PREVENTIVE, isPreventive)
+            putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_INTERVAL_MINUTES, intervalMinutes)
         }
 
         val uniqueCode = (System.currentTimeMillis() % 100000).toInt() + 1
         val fullScreenPendingIntent = PendingIntent.getActivity(
             context,
             uniqueCode,
-            fullScreenIntent,
+            alertIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
         val soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM)
             ?: RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
 
-        val title = if (isPreventive) "🚶 Time for a 5-Minute Walk" else "🚶 Big Break: 5-Minute Walk"
-        val content = if (isPreventive) "Take a 5-minute walking break to stay active." else "Decompress your lumbar spine with a 5-minute walking break."
+        val title = "⏰ Time to Decompress & Walk! 🚶✨"
+        val content = "It's been $intervalMinutes mins. Touch to start your 5-min walk break!"
 
         val notification = NotificationCompat.Builder(context, BackHealthApp.CHANNEL_ALARMS_ID)
             .setSmallIcon(R.drawable.ic_walk)
@@ -176,8 +190,9 @@ class AlarmReceiver : BroadcastReceiver() {
         val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID_WALK, notification)
 
+        // Pop up the Alarm Alert screen directly
         try {
-            context.startActivity(fullScreenIntent)
+            context.startActivity(alertIntent)
         } catch (e: Exception) {
             e.printStackTrace()
         }

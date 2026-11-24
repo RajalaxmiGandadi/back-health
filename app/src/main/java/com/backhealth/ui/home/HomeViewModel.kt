@@ -48,14 +48,25 @@ class HomeViewModel(
         viewModelScope.launch {
             while (true) {
                 val state = cycleState.value
+                val now = System.currentTimeMillis()
                 if (state.isResting) {
-                    val remainingMs = maxOf(0L, state.restEndEpochMillis - System.currentTimeMillis())
+                    val remainingMs = maxOf(0L, state.restEndEpochMillis - now)
                     _countdownText.value = formatDuration(remainingMs)
                 } else if (state.nextAlarmEpochMillis > 0L) {
-                    val remainingMs = maxOf(0L, state.nextAlarmEpochMillis - System.currentTimeMillis())
+                    val remainingMs = maxOf(0L, state.nextAlarmEpochMillis - now)
                     _countdownText.value = formatDuration(remainingMs)
                 } else {
-                    _countdownText.value = "--:--"
+                    // Fallback to persisted SharedPreferences immediately if in-memory state is still warming up
+                    val sp = com.backhealth.BackHealthApp.instance.getSharedPreferences(
+                        AlarmCycleService.PREFS_CYCLE,
+                        android.content.Context.MODE_PRIVATE
+                    )
+                    val savedEpoch = sp.getLong(AlarmCycleService.KEY_NEXT_ALARM_EPOCH, 0L)
+                    if (savedEpoch > now) {
+                        _countdownText.value = formatDuration(savedEpoch - now)
+                    } else {
+                        _countdownText.value = "--:--"
+                    }
                 }
                 delay(1000)
             }

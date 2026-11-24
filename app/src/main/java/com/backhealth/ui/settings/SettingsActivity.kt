@@ -1,6 +1,7 @@
 package com.backhealth.ui.settings
 
 import android.app.TimePickerDialog
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -122,14 +123,21 @@ class SettingsActivity : AppCompatActivity() {
             lifecycleScope.launch {
                 val currentPrefs = userPrefsRepo.getPrefs()
                 if (currentPrefs.userType != newUserType) {
+                    getSharedPreferences("spinehealth_user_prefs", android.content.Context.MODE_PRIVATE)
+                        .edit().putString("user_type", newUserType).apply()
                     userPrefsRepo.savePrefs(currentPrefs.copy(userType = newUserType))
-                    AlarmCycleService.resetUserCycle(this@SettingsActivity)
+                    AlarmCycleService.startCycleImmediate(
+                        this@SettingsActivity,
+                        newUserType,
+                        currentPrefs.wakeTime,
+                        currentPrefs.bedTime
+                    )
                     updateBreakTimesUI()
 
                     val toastMsg = if (newUserType == UserPrefs.USER_TYPE_PREVENTIVE) {
                         "Switched to Preventive: Walk for 5m every 40m"
                     } else {
-                        "Switched to Disc Recovery: Alternating 20m cycle"
+                        "Switched to Spine & Disc Recovery: Alternating 20m cycle"
                     }
                     Toast.makeText(this@SettingsActivity, toastMsg, Toast.LENGTH_SHORT).show()
                 }
@@ -145,9 +153,12 @@ class SettingsActivity : AppCompatActivity() {
                 TimePickerDialog(this@SettingsActivity, { _, hourOfDay, minute ->
                     val newTime = String.format("%02d:%02d", hourOfDay, minute)
                     binding.btnSettingWakeTime.text = "Wake: $newTime"
+                    getSharedPreferences("spinehealth_user_prefs", android.content.Context.MODE_PRIVATE)
+                        .edit().putString("wake_time", newTime).apply()
                     lifecycleScope.launch {
                         val prefs = userPrefsRepo.getPrefs().copy(wakeTime = newTime)
                         userPrefsRepo.savePrefs(prefs)
+                        AlarmCycleService.ensureCycleRunning(this@SettingsActivity)
                     }
                 }, h, m, false).show()
             }
@@ -162,9 +173,12 @@ class SettingsActivity : AppCompatActivity() {
                 TimePickerDialog(this@SettingsActivity, { _, hourOfDay, minute ->
                     val newTime = String.format("%02d:%02d", hourOfDay, minute)
                     binding.btnSettingBedTime.text = "Bed: $newTime"
+                    getSharedPreferences("spinehealth_user_prefs", android.content.Context.MODE_PRIVATE)
+                        .edit().putString("bed_time", newTime).apply()
                     lifecycleScope.launch {
                         val prefs = userPrefsRepo.getPrefs().copy(bedTime = newTime)
                         userPrefsRepo.savePrefs(prefs)
+                        AlarmCycleService.ensureCycleRunning(this@SettingsActivity)
                     }
                 }, h, m, false).show()
             }
@@ -182,6 +196,28 @@ class SettingsActivity : AppCompatActivity() {
                 val prefs = userPrefsRepo.getPrefs().copy(vibrationEnabled = isChecked)
                 userPrefsRepo.savePrefs(prefs)
             }
+        }
+
+        binding.btnTestAlarm.setOnClickListener {
+            val testIntent = Intent(this, com.backhealth.ui.alarm.AlarmAlertActivity::class.java).apply {
+                putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_ALARM_TYPE, AlarmCycleService.ALARM_TYPE_EXERCISE)
+                putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_IS_PREVENTIVE, false)
+                putExtra(com.backhealth.ui.alarm.AlarmAlertActivity.EXTRA_INTERVAL_MINUTES, 20)
+            }
+            startActivity(testIntent)
+        }
+
+        binding.btnRetakeOnboarding.setOnClickListener {
+            getSharedPreferences("spinehealth_user_prefs", android.content.Context.MODE_PRIVATE)
+                .edit()
+                .putInt("setup_version", 0)
+                .putBoolean("onboarding_complete", false)
+                .apply()
+            val onboardingIntent = Intent(this, com.backhealth.ui.onboarding.OnboardingActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            }
+            startActivity(onboardingIntent)
+            finish()
         }
 
         binding.btnResetExercises.setOnClickListener {

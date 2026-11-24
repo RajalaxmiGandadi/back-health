@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/rootAlarmAlert"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_obsidian"
+    android:clickable="true"
+    android:focusable="true"
+    android:padding="24dp">
+
+    <!-- Top Badge / Header -->
+    <LinearLayout
+        android:id="@+id/headerContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="32dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <!-- Time Elapsed Pill Badge -->
+        <TextView
+            android:id="@+id/tvTimeElapsedBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/ic_check"
+            android:backgroundTint="@color/teal_light"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="8dp"
+            android:text="⏰ 20 MINS ALREADY!"
+            android:textColor="@color/neon_mint"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvAlertAppTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:letterSpacing="0.08"
+            android:text="SPINEHEALTH ALARM"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Center Content: Motivation & Decompression Icon -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/actionsContainer"
+        android:layout_below="@+id/headerContainer"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <!-- Glowing Ring Container with Main Emoji Icon -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:layout_marginBottom="28dp"
+            app:cardBackgroundColor="@color/card_dark_slate"
+            app:cardCornerRadius="60dp"
+            app:cardElevation="8dp"
+            app:strokeColor="@color/neon_mint"
+            app:strokeWidth="2dp">
+
+            <TextView
+                android:id="@+id/tvBigEmojiIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="🧘‍♂️"
+                android:textSize="52sp" />
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Main Motivational Headline -->
+        <TextView
+            android:id="@+id/tvAlertTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="Time to Decompress! ✨"
+            android:textColor="@color/text_primary"
+            android:textSize="26sp"
+            android:textStyle="bold" />
+
+        <!-- Motivational Decompression Subtitle -->
+        <TextView
+            android:id="@+id/tvAlertSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:lineSpacingExtra="4dp"
+            android:text="It is time to relieve cervical &amp; lumbar disc pressure. Protect your spine and stay pain-free! 💪🌿"
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp" />
+    </LinearLayout>
+
+    <!-- Bottom Actions: Touch to Start & Snooze -->
+    <LinearLayout
+        android:id="@+id/actionsContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="24dp"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <!-- Primary Touch Button: Opens Exercise / Walk screen -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnStartRoutine"
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:text="👉 Touch to Start Exercises 🧘"
+            android:textAllCaps="false"
+            android:textColor="@color/bg_obsidian"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            app:backgroundTint="@color/neon_mint"
+            app:cornerRadius="18dp" />
+
+        <TextView
+            android:id="@+id/tvTouchHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:text="Touch to silence alarm and view exercise routine"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp" />
+
+        <!-- Snooze Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnSnoozeAlert"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="😴 Snooze (Remind in 2 min)"
+            android:textAllCaps="false"
+            android:textColor="@color/text_secondary"
+            android:textSize="15sp"
+            app:cornerRadius="14dp"
+            app:strokeColor="@color/card_border"
+            app:strokeWidth="1dp" />
+
+    </LinearLayout>
+
+</RelativeLayout>

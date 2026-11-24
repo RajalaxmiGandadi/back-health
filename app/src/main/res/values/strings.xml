@@ -1,11 +1,12 @@
 <resources>
-    <string name="app_name">BackHealth</string>
+    <string name="app_name">SpineHealth: Back &amp; Neck</string>
+    <string name="launcher_name">SpineHealth</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_title">Protect Your Spine</string>
-    <string name="onboarding_subtitle">Smart micro-breaks and posture resets designed to alleviate and prevent lumbar disc issues.</string>
-    <string name="user_type_disc">I have a lumbar disc issue (L4-L5, L5-S1)</string>
-    <string name="user_type_preventive">I want to prevent back and neck issues</string>
+    <string name="onboarding_title">Protect Your Spine &amp; Neck</string>
+    <string name="onboarding_subtitle">Smart micro-breaks and posture resets designed to alleviate and prevent cervical (neck) and lumbar (lower back) disc issues.</string>
+    <string name="user_type_disc">I have a disc issue (Cervical / Lumbar)</string>
+    <string name="user_type_preventive">I want to prevent spine and neck issues</string>
     <string name="wake_time_label">Wake-up Time</string>
     <string name="bed_time_label">Bedtime</string>
     <string name="get_started">Get Started</string>
@@ -49,8 +50,8 @@
     <string name="wake_up_early">Wake Up Early &amp; Resume</string>
 
     <!-- Notification Strings -->
-    <string name="channel_alarm_name">BackHealth Reminders</string>
+    <string name="channel_alarm_name">SpineHealth Reminders</string>
     <string name="channel_alarm_desc">Full-screen and heads-up posture &amp; walk break alarms</string>
-    <string name="channel_service_name">BackHealth Background Service</string>
-    <string name="channel_service_desc">Keeps your micro-break routine active</string>
+    <string name="channel_service_name">SpineHealth Background Service</string>
+    <string name="channel_service_desc">Keeps your spine care micro-break routine active</string>
 </resources>
